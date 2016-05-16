@@ -20,6 +20,7 @@ api_client::~api_client() {
 void api_client::setup_curl() {
   curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, write_callback);
   curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
+  // curl_easy_setopt(curl_, CURLOPT_VERBOSE, 1L);
 }
 
 size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,
@@ -27,14 +28,28 @@ size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,
   return static_cast<api_client*>(userdata)->on_write(ptr, size * nmemb);
 }
 
-boost::optional<Json::Value> api_client::get(const std::string method_name) {
-  curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
-  const std::string url(endpoint_ + "/" + method_name + "?token=" + token_);
+boost::optional<Json::Value> api_client::post(
+    const std::string method_name,
+    const std::map<std::string, std::string>& params) {
+  const std::string url(endpoint_ + "/" + method_name);
   curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
   char errbuf[CURL_ERROR_SIZE] = {0};
   curl_easy_setopt(curl_, CURLOPT_ERRORBUFFER, errbuf);
 
+  curl_httppost *post = nullptr, *last = nullptr;
+  curl_formadd(&post, &last, CURLFORM_COPYNAME, "token", CURLFORM_COPYCONTENTS,
+               token_.c_str(), CURLFORM_CONTENTSLENGTH, token_.size(),
+               CURLFORM_END);
+  for (const std::pair<std::string, std::string>& param : params) {
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, param.first.c_str(),
+                 CURLFORM_NAMELENGTH, param.first.size(), CURLFORM_COPYCONTENTS,
+                 param.second.c_str(), CURLFORM_CONTENTSLENGTH,
+                 param.second.size(), CURLFORM_END);
+  }
+  curl_easy_setopt(curl_, CURLOPT_HTTPPOST, post);
+
   CURLcode res = curl_easy_perform(curl_);
+  curl_formfree(post);
   if (res == CURLE_OK) {
     Json::Reader reader;
     Json::Value root;

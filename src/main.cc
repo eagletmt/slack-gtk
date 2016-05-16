@@ -11,7 +11,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
   api_client api_client("https://slack.com/api", token);
-  const boost::optional<Json::Value> result = api_client.get("rtm.start");
+  const boost::optional<Json::Value> result =
+      api_client.post("rtm.start", std::map<std::string, std::string>());
   if (!result) {
     return 1;
   }
