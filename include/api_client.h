@@ -9,10 +9,12 @@ class api_client {
  public:
   api_client(const std::string endpoint, const std::string token);
   ~api_client();
+  api_client(const api_client& other);
 
   boost::optional<Json::Value> get(const std::string method_name);
 
  private:
+  void setup_curl();
   size_t on_write(char* ptr, size_t size);
   static size_t write_callback(char* ptr, size_t size, size_t nmemb,
                                void* userdata);

@@ -4,6 +4,8 @@
 #include <gtkmm.h>
 #include <json/json.h>
 #include <thread>
+#include "api_client.h"
+#include "message_entry.h"
 #include "rtm_client.h"
 
 class ChannelRow : public Gtk::ListBoxRow {
@@ -26,7 +28,7 @@ class MessageRow : public Gtk::ListBoxRow {
 
 class MainWindow : public Gtk::Window {
  public:
-  MainWindow();
+  MainWindow(const api_client& api_client);
   virtual ~MainWindow();
 
   void start(const Json::Value& rtm);
@@ -47,6 +49,8 @@ class MainWindow : public Gtk::Window {
   Gtk::ListBox channels_list_box_;
   Gtk::ScrolledWindow messages_scrolled_window_;
   Gtk::ListBox messages_list_box_;
+  Gtk::Box right_box_;
+  MessageEntry message_entry_;
 
   boost::asio::io_service io_service_;
   std::thread rtm_client_thread_;

@@ -24,7 +24,10 @@ MessageRow::MessageRow(const std::string& text)
 MessageRow::~MessageRow() {
 }
 
-MainWindow::MainWindow() : box_(Gtk::ORIENTATION_HORIZONTAL) {
+MainWindow::MainWindow(const api_client& api_client)
+    : box_(Gtk::ORIENTATION_HORIZONTAL),
+      right_box_(Gtk::ORIENTATION_VERTICAL),
+      message_entry_(api_client) {
   add(box_);
 
   channels_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC,
@@ -32,10 +35,13 @@ MainWindow::MainWindow() : box_(Gtk::ORIENTATION_HORIZONTAL) {
   channels_scrolled_window_.add(channels_list_box_);
   box_.pack_start(channels_scrolled_window_);
 
+  box_.pack_start(right_box_);
+
   messages_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC,
                                        Gtk::POLICY_AUTOMATIC);
   messages_scrolled_window_.add(messages_list_box_);
-  box_.pack_start(messages_scrolled_window_);
+  right_box_.pack_start(messages_scrolled_window_);
+  right_box_.pack_end(message_entry_, Gtk::PACK_SHRINK);
 
   show_all_children();
 }
@@ -50,6 +56,9 @@ void MainWindow::start(const Json::Value& rtm) {
     auto row = Gtk::manage(new ChannelRow(channel));
     channels_list_box_.append(*row);
     row->show();
+    if (channel["is_general"].asBool()) {
+      message_entry_.set_channel_id(channel["id"].asString());
+    }
   }
 
   // TODO: Integrate GTK's main loop with io_service.

@@ -3,12 +3,23 @@
 
 api_client::api_client(const std::string endpoint, const std::string token)
     : curl_(curl_easy_init()), endpoint_(endpoint), token_(token) {
-  curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, write_callback);
-  curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
+  setup_curl();
+}
+
+api_client::api_client(const api_client& other)
+    : curl_(curl_easy_init()),
+      endpoint_(other.endpoint_),
+      token_(other.token_) {
+  setup_curl();
 }
 
 api_client::~api_client() {
   curl_easy_cleanup(curl_);
+}
+
+void api_client::setup_curl() {
+  curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
 }
 
 size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,

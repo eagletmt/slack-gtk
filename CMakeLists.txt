@@ -38,6 +38,7 @@ set(SOURCES
   src/rtm_client_impl.cc
   src/rtm_message_handler.cc
   src/main_window.cc
+  src/message_entry.cc
   )
 add_executable(slack-gtk ${SOURCES})
 
