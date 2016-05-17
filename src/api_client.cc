@@ -1,26 +1,28 @@
 #include "api_client.h"
 #include <iostream>
+#include <memory>
 
 api_client::api_client(const std::string endpoint, const std::string token)
-    : curl_(curl_easy_init()), endpoint_(endpoint), token_(token) {
-  setup_curl();
+    : session_(soup_session_new()), endpoint_(endpoint), token_(token) {
+  setup();
 }
 
 api_client::api_client(const api_client& other)
-    : curl_(curl_easy_init()),
+    : session_(soup_session_new()),
       endpoint_(other.endpoint_),
       token_(other.token_) {
-  setup_curl();
+  setup();
 }
 
 api_client::~api_client() {
-  curl_easy_cleanup(curl_);
+  g_object_unref(session_);
 }
 
-void api_client::setup_curl() {
-  curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, write_callback);
-  curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
-  // curl_easy_setopt(curl_, CURLOPT_VERBOSE, 1L);
+void api_client::setup() {
+  soup_session_add_feature_by_type(session_, soup_content_decoder_get_type());
+  SoupLogger* logger = soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1);
+  soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
+  g_object_unref(logger);
 }
 
 size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,
@@ -32,29 +34,31 @@ boost::optional<Json::Value> api_client::post(
     const std::string method_name,
     const std::map<std::string, std::string>& params) {
   const std::string url(endpoint_ + "/" + method_name);
-  curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-  char errbuf[CURL_ERROR_SIZE] = {0};
-  curl_easy_setopt(curl_, CURLOPT_ERRORBUFFER, errbuf);
 
-  curl_httppost *post = nullptr, *last = nullptr;
-  curl_formadd(&post, &last, CURLFORM_COPYNAME, "token", CURLFORM_COPYCONTENTS,
-               token_.c_str(), CURLFORM_CONTENTSLENGTH, token_.size(),
-               CURLFORM_END);
+  std::unique_ptr<GHashTable, decltype(&g_hash_table_unref)> table(
+      g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free),
+      g_hash_table_unref);
+  g_hash_table_insert(table.get(), g_strdup("token"), g_strdup(token_.c_str()));
   for (const std::pair<std::string, std::string>& param : params) {
-    curl_formadd(&post, &last, CURLFORM_COPYNAME, param.first.c_str(),
-                 CURLFORM_NAMELENGTH, param.first.size(), CURLFORM_COPYCONTENTS,
-                 param.second.c_str(), CURLFORM_CONTENTSLENGTH,
-                 param.second.size(), CURLFORM_END);
+    g_hash_table_insert(table.get(), g_strdup(param.first.c_str()),
+                        g_strdup(param.second.c_str()));
   }
-  curl_easy_setopt(curl_, CURLOPT_HTTPPOST, post);
 
-  CURLcode res = curl_easy_perform(curl_);
-  curl_formfree(post);
-  if (res == CURLE_OK) {
+  SoupMessage* message =
+      soup_form_request_new_from_hash("POST", url.c_str(), table.get());
+  soup_message_set_flags(message, SOUP_MESSAGE_NO_REDIRECT);
+  soup_session_send_message(session_, message);
+
+  if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
+    std::cerr << "libsoup: (" << message->status_code << ") "
+              << soup_status_get_phrase(message->status_code) << std::endl;
+    return boost::optional<Json::Value>();
+  } else {
     Json::Reader reader;
     Json::Value root;
-    reader.parse(response_buffer_, root);
-    response_buffer_.clear();
+    reader.parse(message->response_body->data,
+                 message->response_body->data + message->response_body->length,
+                 root);
     if (reader.good()) {
       return boost::make_optional(root);
     } else {
@@ -62,9 +66,6 @@ boost::optional<Json::Value> api_client::post(
                 << std::endl;
       return boost::optional<Json::Value>();
     }
-  } else {
-    std::cerr << "curl: (" << res << ") " << errbuf << std::endl;
-    return boost::optional<Json::Value>();
   }
 }
 
