@@ -1,8 +1,9 @@
 #include "message_entry.h"
 #include <iostream>
 
-MessageEntry::MessageEntry(const api_client& api_client)
-    : api_client_(api_client) {
+MessageEntry::MessageEntry(const api_client& api_client,
+                           const std::string& channel_id)
+    : api_client_(api_client), channel_id_(channel_id) {
 }
 
 MessageEntry::~MessageEntry() {
@@ -20,8 +21,4 @@ void MessageEntry::on_activate() {
   if (result) {
     std::cout << result.get() << std::endl;
   }
-}
-
-void MessageEntry::set_channel_id(const std::string& channel_id) {
-  channel_id_ = channel_id;
 }

@@ -3,10 +3,9 @@
 
 #include <gtkmm/applicationwindow.h>
 #include <gtkmm/box.h>
-#include <gtkmm/listbox.h>
-#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/stack.h>
+#include <gtkmm/stacksidebar.h>
 #include "api_client.h"
-#include "message_entry.h"
 #include "rtm_client.h"
 
 class MainWindow : public Gtk::ApplicationWindow {
@@ -25,14 +24,9 @@ class MainWindow : public Gtk::ApplicationWindow {
   void append_message(const std::string& text);
 
   Gtk::Box box_;
-  Gtk::ScrolledWindow channels_scrolled_window_;
-  Gtk::ListBox channels_list_box_;
-  Gtk::ScrolledWindow messages_scrolled_window_;
-  Gtk::ListBox messages_list_box_;
-  Gtk::Box right_box_;
-  MessageEntry message_entry_;
+  Gtk::StackSidebar channels_sidebar_;
+  Gtk::Stack channels_stack_;
 
-  api_client api_client_;
   rtm_client rtm_client_;
 };
 #endif

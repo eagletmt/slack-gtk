@@ -26,7 +26,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 include_directories("${CMAKE_SOURCE_DIR}/include")
 set(SOURCES
   src/api_client.cc
-  src/channel_row.cc
+  src/channel_window.cc
   src/main.cc
   src/main_window.cc
   src/message_entry.cc

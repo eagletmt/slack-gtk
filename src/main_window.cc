@@ -1,28 +1,15 @@
 #include "main_window.h"
 #include <iostream>
-#include "channel_row.h"
-#include "message_row.h"
+#include "channel_window.h"
 
 MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
-    : box_(Gtk::ORIENTATION_HORIZONTAL),
-      right_box_(Gtk::ORIENTATION_VERTICAL),
-      message_entry_(api_client),
-      api_client_(api_client),
-      rtm_client_(json) {
+    : box_(Gtk::ORIENTATION_HORIZONTAL), rtm_client_(json) {
   add(box_);
 
-  channels_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC,
-                                       Gtk::POLICY_AUTOMATIC);
-  channels_scrolled_window_.add(channels_list_box_);
-  box_.pack_start(channels_scrolled_window_);
+  box_.pack_start(channels_sidebar_, Gtk::PACK_SHRINK);
+  box_.pack_start(channels_stack_, Gtk::PACK_EXPAND_WIDGET);
 
-  box_.pack_start(right_box_);
-
-  messages_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC,
-                                       Gtk::POLICY_AUTOMATIC);
-  messages_scrolled_window_.add(messages_list_box_);
-  right_box_.pack_start(messages_scrolled_window_);
-  right_box_.pack_end(message_entry_, Gtk::PACK_SHRINK);
+  channels_sidebar_.set_stack(channels_stack_);
 
   rtm_client_.hello_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_hello_signal));
@@ -38,12 +25,9 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
       sigc::mem_fun(*this, &MainWindow::on_channel_marked_signal));
 
   for (const Json::Value& channel : json["channels"]) {
-    auto row = Gtk::manage(new ChannelRow(channel));
-    channels_list_box_.append(*row);
-    row->show();
-    if (channel["is_general"].asBool()) {
-      message_entry_.set_channel_id(channel["id"].asString());
-    }
+    const std::string name = channel["name"].asString();
+    auto w = Gtk::manage(new ChannelWindow(api_client, channel));
+    channels_stack_.add(*w, w->id(), w->name());
   }
 
   rtm_client_.start();
@@ -76,11 +60,16 @@ void MainWindow::on_pref_change_signal(const Json::Value& payload) {
 }
 
 void MainWindow::on_message_signal(const Json::Value& payload) {
-  std::ostringstream oss;
-  oss << "User " << payload["user"] << " sent message to " << payload["channel"]
-      << "[ts=" << payload["ts"] << "]: " << payload["text"];
-  append_message(oss.str());
+  const std::string id = payload["channel"].asString();
+  Widget* widget = channels_stack_.get_child_by_name(id);
+  if (widget == nullptr) {
+    std::cerr << "Unknown channel: id=" << id << std::endl;
+    std::cerr << payload << std::endl;
+  } else {
+    static_cast<ChannelWindow*>(widget)->on_message_signal(payload);
+  }
 }
+
 void MainWindow::on_channel_marked_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << payload;
@@ -89,7 +78,4 @@ void MainWindow::on_channel_marked_signal(const Json::Value& payload) {
 
 void MainWindow::append_message(const std::string& text) {
   std::cout << text << std::endl;
-  auto row = Gtk::manage(new MessageRow(text));
-  messages_list_box_.append(*row);
-  row->show();
 }

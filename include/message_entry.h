@@ -6,13 +6,11 @@
 
 class MessageEntry : public Gtk::Entry {
  public:
-  MessageEntry(const api_client& api_client);
+  MessageEntry(const api_client& api_client, const std::string& channel_id);
   virtual ~MessageEntry();
 
-  void set_channel_id(const std::string& channel_id);
-
  protected:
-  virtual void on_activate();
+  virtual void on_activate() override;
 
  private:
   api_client api_client_;
