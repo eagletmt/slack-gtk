@@ -16,8 +16,7 @@ class ChannelWindow : public Gtk::Box {
   const std::string& name() const;
 
   void on_message_signal(const Json::Value& payload);
-  void on_channels_history(
-      const boost::optional<Json::Value>& result);
+  void on_channels_history(const boost::optional<Json::Value>& result);
 
  private:
   Gtk::ScrolledWindow messages_scrolled_window_;

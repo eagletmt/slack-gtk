@@ -77,24 +77,27 @@ boost::optional<Json::Value> api_client::post(
   return parse_json(message);
 }
 
-void api_client::queue_post(
-    const std::string& method_name,
-    const std::map<std::string, std::string>& params,
-    const post_callback_type& callback) {
-  SoupMessage *message = build_message(method_name, params);
-  callback_registry_.insert(std::make_pair(reinterpret_cast<std::intptr_t>(message), callback));
+void api_client::queue_post(const std::string& method_name,
+                            const std::map<std::string, std::string>& params,
+                            const post_callback_type& callback) {
+  SoupMessage* message = build_message(method_name, params);
+  callback_registry_.insert(
+      std::make_pair(reinterpret_cast<std::intptr_t>(message), callback));
   soup_session_queue_message(session_, message, queue_callback, this);
 }
 
-void api_client::queue_callback(SoupSession *, SoupMessage *message, gpointer user_data) {
+void api_client::queue_callback(SoupSession*, SoupMessage* message,
+                                gpointer user_data) {
   static_cast<api_client*>(user_data)->on_queue_callback(message);
 }
 
-void api_client::on_queue_callback(SoupMessage *message) {
+void api_client::on_queue_callback(SoupMessage* message) {
   auto result = parse_json(message);
   auto it = callback_registry_.find(reinterpret_cast<std::intptr_t>(message));
   if (it == callback_registry_.end()) {
-    std::cerr << "[api_client] unknown message is passed to callback. SHOULD NOT HAPPEN" << std::endl;
+    std::cerr << "[api_client] unknown message is passed to callback. SHOULD "
+                 "NOT HAPPEN"
+              << std::endl;
   } else {
     (it->second)(result);
     callback_registry_.erase(it);
