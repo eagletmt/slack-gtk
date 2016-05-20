@@ -4,19 +4,19 @@
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
                              const Json::Value& channel)
-    : box_(Gtk::ORIENTATION_VERTICAL),
+    : messages_scrolled_window_(),
       messages_list_box_(),
       message_entry_(api_client, channel["id"].asString()),
 
       id_(channel["id"].asString()),
       name_(channel["name"].asString()),
       api_client_(api_client) {
-  set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  set_orientation(Gtk::ORIENTATION_VERTICAL);
+  pack_start(messages_scrolled_window_);
+  pack_end(message_entry_, Gtk::PACK_SHRINK);
 
-  add(box_);
-
-  box_.pack_start(messages_list_box_);
-  box_.pack_end(message_entry_, Gtk::PACK_SHRINK);
+  messages_scrolled_window_.add(messages_list_box_);
+  messages_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
   show_all_children();
 

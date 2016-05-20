@@ -8,7 +8,7 @@
 #include "api_client.h"
 #include "message_entry.h"
 
-class ChannelWindow : public Gtk::ScrolledWindow {
+class ChannelWindow : public Gtk::Box {
  public:
   ChannelWindow(const api_client& api_client, const Json::Value& channel);
 
@@ -20,7 +20,7 @@ class ChannelWindow : public Gtk::ScrolledWindow {
       const boost::optional<Json::Value>& result);
 
  private:
-  Gtk::Box box_;
+  Gtk::ScrolledWindow messages_scrolled_window_;
   Gtk::ListBox messages_list_box_;
   MessageEntry message_entry_;
 
