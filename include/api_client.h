@@ -12,7 +12,7 @@ class api_client {
   api_client(const api_client& other);
 
   boost::optional<Json::Value> post(
-      const std::string method_name,
+      const std::string& method_name,
       const std::map<std::string, std::string>& params);
 
  private:

@@ -31,7 +31,7 @@ size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,
 }
 
 boost::optional<Json::Value> api_client::post(
-    const std::string method_name,
+    const std::string& method_name,
     const std::map<std::string, std::string>& params) {
   const std::string url(endpoint_ + "/" + method_name);
 
