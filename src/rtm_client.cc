@@ -1,11 +1,16 @@
 #include "rtm_client.h"
+#include <glibmm/miscutils.h>
+#include <libsoup/soup-logger.h>
+#include <libsoup/soup-session-feature.h>
 #include <iostream>
 
 rtm_client::rtm_client(const Json::Value &rtm_start)
     : url_(rtm_start["url"].asString()), session_(soup_session_new()) {
-  // SoupLogger *logger = soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1);
-  // soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
-  // g_object_unref(logger);
+  if (!Glib::getenv("SLACK_GTK_LIBSOUP_DEBUG").empty()) {
+    SoupLogger *logger = soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1);
+    soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
+    g_object_unref(logger);
+  }
   // FIXME: libsoup doesn't handle wss protocol correctly.
   if (url_.substr(0, 6) == "wss://") {
     url_.replace(0, 3, "https");

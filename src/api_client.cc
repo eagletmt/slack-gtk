@@ -1,4 +1,5 @@
 #include "api_client.h"
+#include <glibmm/miscutils.h>
 #include <iostream>
 #include <memory>
 
@@ -20,9 +21,11 @@ api_client::~api_client() {
 
 void api_client::setup() {
   soup_session_add_feature_by_type(session_, soup_content_decoder_get_type());
-  SoupLogger* logger = soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1);
-  soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
-  g_object_unref(logger);
+  if (!Glib::getenv("SLACK_GTK_LIBSOUP_DEBUG").empty()) {
+    SoupLogger* logger = soup_logger_new(SOUP_LOGGER_LOG_BODY, -1);
+    soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
+    g_object_unref(logger);
+  }
 }
 
 SoupMessage* api_client::build_message(
