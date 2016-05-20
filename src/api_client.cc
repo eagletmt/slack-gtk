@@ -25,11 +25,6 @@ void api_client::setup() {
   g_object_unref(logger);
 }
 
-size_t api_client::write_callback(char* ptr, size_t size, size_t nmemb,
-                                  void* userdata) {
-  return static_cast<api_client*>(userdata)->on_write(ptr, size * nmemb);
-}
-
 boost::optional<Json::Value> api_client::post(
     const std::string& method_name,
     const std::map<std::string, std::string>& params) {
@@ -67,9 +62,4 @@ boost::optional<Json::Value> api_client::post(
       return boost::optional<Json::Value>();
     }
   }
-}
-
-size_t api_client::on_write(char* ptr, size_t size) {
-  response_buffer_.append(ptr, size);
-  return size;
 }

@@ -17,9 +17,6 @@ class api_client {
 
  private:
   void setup();
-  size_t on_write(char* ptr, size_t size);
-  static size_t write_callback(char* ptr, size_t size, size_t nmemb,
-                               void* userdata);
 
   SoupSession* session_;
   const std::string endpoint_;
