@@ -116,21 +116,21 @@ void rtm_client::handle_payload(const char *payload, size_t size) {
   }
 }
 
-rtm_client::message_signal_type rtm_client::hello_message() {
+rtm_client::message_signal_type rtm_client::hello_signal() {
   return hello_signal_;
 }
-rtm_client::message_signal_type rtm_client::reconnect_url_message() {
+rtm_client::message_signal_type rtm_client::reconnect_url_signal() {
   return reconnect_url_signal_;
 }
-rtm_client::message_signal_type rtm_client::presence_change_message() {
+rtm_client::message_signal_type rtm_client::presence_change_signal() {
   return presence_change_signal_;
 }
-rtm_client::message_signal_type rtm_client::pref_change_message() {
+rtm_client::message_signal_type rtm_client::pref_change_signal() {
   return pref_change_signal_;
 }
-rtm_client::message_signal_type rtm_client::message_message() {
+rtm_client::message_signal_type rtm_client::message_signal() {
   return message_signal_;
 }
-rtm_client::message_signal_type rtm_client::channel_marked_message() {
+rtm_client::message_signal_type rtm_client::channel_marked_signal() {
   return channel_marked_signal_;
 }

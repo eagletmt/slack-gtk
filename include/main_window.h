@@ -15,12 +15,12 @@ class MainWindow : public Gtk::ApplicationWindow {
   virtual ~MainWindow();
 
  private:
-  void on_hello_message(const Json::Value& payload);
-  void on_reconnect_url_message(const Json::Value& payload);
-  void on_presence_change_message(const Json::Value& payload);
-  void on_pref_change_message(const Json::Value& payload);
-  void on_message_message(const Json::Value& payload);
-  void on_channel_marked_message(const Json::Value& payload);
+  void on_hello_signal(const Json::Value& payload);
+  void on_reconnect_url_signal(const Json::Value& payload);
+  void on_presence_change_signal(const Json::Value& payload);
+  void on_pref_change_signal(const Json::Value& payload);
+  void on_message_signal(const Json::Value& payload);
+  void on_channel_marked_signal(const Json::Value& payload);
 
   void append_message(const std::string& text);
 

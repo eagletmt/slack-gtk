@@ -14,12 +14,12 @@ class rtm_client {
   void start();
 
   typedef sigc::signal<void, Json::Value> message_signal_type;
-  message_signal_type hello_message();
-  message_signal_type reconnect_url_message();
-  message_signal_type presence_change_message();
-  message_signal_type pref_change_message();
-  message_signal_type message_message();
-  message_signal_type channel_marked_message();
+  message_signal_type hello_signal();
+  message_signal_type reconnect_url_signal();
+  message_signal_type presence_change_signal();
+  message_signal_type pref_change_signal();
+  message_signal_type message_signal();
+  message_signal_type channel_marked_signal();
 
  private:
   static void session_connect_callback(GObject* source, GAsyncResult* result,

@@ -24,18 +24,18 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
   right_box_.pack_start(messages_scrolled_window_);
   right_box_.pack_end(message_entry_, Gtk::PACK_SHRINK);
 
-  rtm_client_.hello_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_hello_message));
-  rtm_client_.reconnect_url_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_reconnect_url_message));
-  rtm_client_.presence_change_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_presence_change_message));
-  rtm_client_.pref_change_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_pref_change_message));
-  rtm_client_.message_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_message_message));
-  rtm_client_.channel_marked_message().connect(
-      sigc::mem_fun(*this, &MainWindow::on_channel_marked_message));
+  rtm_client_.hello_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_hello_signal));
+  rtm_client_.reconnect_url_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_reconnect_url_signal));
+  rtm_client_.presence_change_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_presence_change_signal));
+  rtm_client_.pref_change_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_pref_change_signal));
+  rtm_client_.message_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_message_signal));
+  rtm_client_.channel_marked_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_channel_marked_signal));
 
   for (const Json::Value& channel : json["channels"]) {
     auto row = Gtk::manage(new ChannelRow(channel));
@@ -53,35 +53,35 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
 MainWindow::~MainWindow() {
 }
 
-void MainWindow::on_hello_message(const Json::Value&) {
+void MainWindow::on_hello_signal(const Json::Value&) {
   append_message("RTM API started");
 }
 
-void MainWindow::on_reconnect_url_message(const Json::Value& payload) {
+void MainWindow::on_reconnect_url_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << "Receive reconnect_url=" << payload["url"].asString();
   append_message(oss.str());
 }
 
-void MainWindow::on_presence_change_message(const Json::Value& payload) {
+void MainWindow::on_presence_change_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << "User " << payload["user"] << " changed presence to "
       << payload["presence"];
   append_message(oss.str());
 }
-void MainWindow::on_pref_change_message(const Json::Value& payload) {
+void MainWindow::on_pref_change_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << "Changed preference " << payload["name"] << ": " << payload["value"];
   append_message(oss.str());
 }
 
-void MainWindow::on_message_message(const Json::Value& payload) {
+void MainWindow::on_message_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << "User " << payload["user"] << " sent message to " << payload["channel"]
       << "[ts=" << payload["ts"] << "]: " << payload["text"];
   append_message(oss.str());
 }
-void MainWindow::on_channel_marked_message(const Json::Value& payload) {
+void MainWindow::on_channel_marked_signal(const Json::Value& payload) {
   std::ostringstream oss;
   oss << payload;
   append_message(oss.str());
