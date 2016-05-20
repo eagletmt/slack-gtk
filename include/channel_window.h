@@ -16,6 +16,8 @@ class ChannelWindow : public Gtk::ScrolledWindow {
   const std::string& name() const;
 
   void on_message_signal(const Json::Value& payload);
+  void on_channels_history(
+      const boost::optional<Json::Value>& result);
 
  private:
   Gtk::Box box_;
@@ -24,6 +26,7 @@ class ChannelWindow : public Gtk::ScrolledWindow {
 
   std::string id_;
   std::string name_;
+  api_client api_client_;
 };
 
 #endif

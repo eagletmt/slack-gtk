@@ -25,9 +25,9 @@ void api_client::setup() {
   g_object_unref(logger);
 }
 
-boost::optional<Json::Value> api_client::post(
+SoupMessage* api_client::build_message(
     const std::string& method_name,
-    const std::map<std::string, std::string>& params) {
+    const std::map<std::string, std::string>& params) const {
   const std::string url(endpoint_ + "/" + method_name);
 
   std::unique_ptr<GHashTable, decltype(&g_hash_table_unref)> table(
@@ -42,8 +42,10 @@ boost::optional<Json::Value> api_client::post(
   SoupMessage* message =
       soup_form_request_new_from_hash("POST", url.c_str(), table.get());
   soup_message_set_flags(message, SOUP_MESSAGE_NO_REDIRECT);
-  soup_session_send_message(session_, message);
+  return message;
+}
 
+static boost::optional<Json::Value> parse_json(SoupMessage* message) {
   if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
     std::cerr << "libsoup: (" << message->status_code << ") "
               << soup_status_get_phrase(message->status_code) << std::endl;
@@ -61,5 +63,37 @@ boost::optional<Json::Value> api_client::post(
                 << std::endl;
       return boost::optional<Json::Value>();
     }
+  }
+}
+
+boost::optional<Json::Value> api_client::post(
+    const std::string& method_name,
+    const std::map<std::string, std::string>& params) {
+  SoupMessage* message = build_message(method_name, params);
+  soup_session_send_message(session_, message);
+  return parse_json(message);
+}
+
+void api_client::queue_post(
+    const std::string& method_name,
+    const std::map<std::string, std::string>& params,
+    const post_callback_type& callback) {
+  SoupMessage *message = build_message(method_name, params);
+  callback_registry_.insert(std::make_pair(reinterpret_cast<std::intptr_t>(message), callback));
+  soup_session_queue_message(session_, message, queue_callback, this);
+}
+
+void api_client::queue_callback(SoupSession *, SoupMessage *message, gpointer user_data) {
+  static_cast<api_client*>(user_data)->on_queue_callback(message);
+}
+
+void api_client::on_queue_callback(SoupMessage *message) {
+  auto result = parse_json(message);
+  auto it = callback_registry_.find(reinterpret_cast<std::intptr_t>(message));
+  if (it == callback_registry_.end()) {
+    std::cerr << "[api_client] unknown message is passed to callback. SHOULD NOT HAPPEN" << std::endl;
+  } else {
+    (it->second)(result);
+    callback_registry_.erase(it);
   }
 }
