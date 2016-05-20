@@ -34,8 +34,18 @@ const std::string& ChannelWindow::name() const {
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
   std::ostringstream oss;
-  oss << "User " << payload["user"] << " sent message "
-      << "[ts=" << payload["ts"] << "]: " << payload["text"];
+  const Json::Value subtype_value = payload["subtype"];
+
+  if (subtype_value.isNull()) {
+    oss << "User " << payload["user"] << " sent message " << payload["text"];
+  } else {
+    const std::string subtype = subtype_value.asString();
+    if (subtype == "bot_message") {
+      oss << "Bot " << payload["username"] << " (bot_id=" << payload["bot_id"] << ") sent message " << payload["text"];
+    } else {
+      oss << "subtype " << subtype << ": " << payload["text"];
+    }
+  }
 
   auto row = Gtk::manage(new MessageRow(oss.str()));
   messages_list_box_.append(*row);
@@ -44,8 +54,12 @@ void ChannelWindow::on_message_signal(const Json::Value& payload) {
 
 void ChannelWindow::on_channels_history(const boost::optional<Json::Value>& result) {
   if (result) {
+    std::vector<Json::Value> v;
     for (const Json::Value& message : result.get()["messages"]) {
-      on_message_signal(message);
+      v.push_back(message);
+    }
+    for (auto it = v.crbegin(); it != v.crend(); ++it) {
+      on_message_signal(*it);
     }
   } else {
     std::cerr << "[channel " << name() << "] failed to load history from channels.history API" << std::endl;
