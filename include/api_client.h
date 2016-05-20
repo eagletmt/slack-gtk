@@ -1,5 +1,5 @@
-#ifndef SLACK_CPP_API_CLIENT_H
-#define SLACK_CPP_API_CLIENT_H
+#ifndef SLACK_GTK_API_CLIENT_H
+#define SLACK_GTK_API_CLIENT_H
 
 #include <json/json.h>
 #include <libsoup/soup.h>
