@@ -21,7 +21,7 @@ link_libraries(pthread)
 
 add_definitions(-std=c++11 -Wall -W)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
 set(SOURCES
