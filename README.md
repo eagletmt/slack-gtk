@@ -2,10 +2,9 @@
 Native desktop client for slack.com
 
 ## Dependencies
-- Boost.System
-- websocketpp
 - jsoncpp
 - gtkmm 3
+- libsoup
 
 ## Build
 ```sh

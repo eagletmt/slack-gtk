@@ -1,16 +1,136 @@
 #include "rtm_client.h"
-#include "rtm_client_impl.h"
+#include <iostream>
 
-rtm_client::rtm_client(boost::asio::io_service& io_service,
-                       const Json::Value& rtm_start,
-                       const message_handler& message_handler)
-    : impl_(new rtm_client_impl(io_service, rtm_start, message_handler)) {
+rtm_client::rtm_client(const Json::Value &rtm_start)
+    : url_(rtm_start["url"].asString()), session_(soup_session_new()) {
+  // SoupLogger *logger = soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1);
+  // soup_session_add_feature(session_, SOUP_SESSION_FEATURE(logger));
+  // g_object_unref(logger);
+  // FIXME: libsoup doesn't handle wss protocol correctly.
+  if (url_.substr(0, 6) == "wss://") {
+    url_.replace(0, 3, "https");
+  }
 }
 
 rtm_client::~rtm_client() {
-  delete impl_;
+  g_object_unref(session_);
 }
 
 void rtm_client::start() {
-  impl_->start();
+  session_ = soup_session_new();
+  SoupMessage *message = soup_message_new("GET", url_.c_str());
+  soup_session_websocket_connect_async(session_, message, nullptr, nullptr,
+                                       nullptr, session_connect_callback, this);
+}
+
+void rtm_client::session_connect_callback(GObject *source, GAsyncResult *result,
+                                          gpointer user_data) {
+  static_cast<rtm_client *>(user_data)->on_session_connect(SOUP_SESSION(source),
+                                                           result);
+}
+void rtm_client::closed_callback(SoupWebsocketConnection *,
+                                 gpointer user_data) {
+  static_cast<rtm_client *>(user_data)->on_closed();
+}
+void rtm_client::closing_callback(SoupWebsocketConnection *,
+                                  gpointer user_data) {
+  static_cast<rtm_client *>(user_data)->on_closing();
+}
+void rtm_client::error_callback(SoupWebsocketConnection *, GError *error,
+                                gpointer user_data) {
+  static_cast<rtm_client *>(user_data)->on_error(error);
+}
+void rtm_client::message_callback(SoupWebsocketConnection *, gint type,
+                                  GBytes *message, gpointer user_data) {
+  static_cast<rtm_client *>(user_data)->on_message(
+      static_cast<SoupWebsocketDataType>(type), message);
+}
+
+void rtm_client::on_session_connect(SoupSession *session,
+                                    GAsyncResult *result) {
+  GError *error = nullptr;
+  connection_ = soup_session_websocket_connect_finish(session, result, &error);
+  g_assert_no_error(error);
+
+  g_signal_connect(connection_, "closed", G_CALLBACK(closed_callback), this);
+  g_signal_connect(connection_, "closing", G_CALLBACK(closing_callback), this);
+  g_signal_connect(connection_, "error", G_CALLBACK(error_callback), this);
+  g_signal_connect(connection_, "message", G_CALLBACK(message_callback), this);
+}
+
+void rtm_client::on_closed() {
+  std::cout << "on_closed" << std::endl;
+}
+void rtm_client::on_closing() {
+  std::cout << "on_closing" << std::endl;
+}
+void rtm_client::on_error(GError *error) {
+  std::cout << "on_error(" << error->code << ": " << error->message << ")"
+            << std::endl;
+}
+void rtm_client::on_message(SoupWebsocketDataType type, GBytes *message) {
+  switch (type) {
+    case SOUP_WEBSOCKET_DATA_TEXT: {
+      gsize size = 0;
+      const char *ptr =
+          static_cast<decltype(ptr)>(g_bytes_get_data(message, &size));
+      handle_payload(ptr, size);
+      break;
+    }
+    case SOUP_WEBSOCKET_DATA_BINARY:
+      std::cerr << "on_message: binary message isn't supported" << std::endl;
+      break;
+  }
+}
+
+void rtm_client::handle_payload(const char *payload, size_t size) {
+  Json::Reader reader;
+  Json::Value root;
+  reader.parse(std::string(payload, payload + size), root);
+  if (reader.good()) {
+    const Json::Value type_value = root["type"];
+    if (type_value.isString()) {
+      const std::string type = type_value.asString();
+      if (type == "hello") {
+        hello_signal_.emit(root);
+      } else if (type == "reconnect_url") {
+        reconnect_url_signal_.emit(root);
+      } else if (type == "presence_change") {
+        presence_change_signal_.emit(root);
+      } else if (type == "pref_change") {
+        pref_change_signal_.emit(root);
+      } else if (type == "message") {
+        message_signal_.emit(root);
+      } else if (type == "channel_marked") {
+        channel_marked_signal_.emit(root);
+      } else {
+        std::cerr << "rtm_client: unknown message type=" << type << std::endl;
+        std::cerr << root << std::endl;
+      }
+    } else {
+      std::cerr << "jsoncpp: invalid payload (missing type)" << std::endl;
+      std::cerr << root << std::endl;
+    }
+  } else {
+    std::cerr << "jsoncpp: " << reader.getFormattedErrorMessages() << std::endl;
+  }
+}
+
+rtm_client::message_signal_type rtm_client::hello_message() {
+  return hello_signal_;
+}
+rtm_client::message_signal_type rtm_client::reconnect_url_message() {
+  return reconnect_url_signal_;
+}
+rtm_client::message_signal_type rtm_client::presence_change_message() {
+  return presence_change_signal_;
+}
+rtm_client::message_signal_type rtm_client::pref_change_message() {
+  return pref_change_signal_;
+}
+rtm_client::message_signal_type rtm_client::message_message() {
+  return message_signal_;
+}
+rtm_client::message_signal_type rtm_client::channel_marked_message() {
+  return channel_marked_signal_;
 }

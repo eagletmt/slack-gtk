@@ -20,8 +20,7 @@ int main(int argc, char* argv[]) {
   std::cout << json << std::endl;
 
   auto app = Gtk::Application::create(argc, argv, "cc.wanko.slack-gtk");
-  MainWindow window(api_client);
-  window.start(json);
+  MainWindow window(api_client, json);
 
   return app->run(window);
 }
