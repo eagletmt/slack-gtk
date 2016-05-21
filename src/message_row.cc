@@ -167,7 +167,15 @@ std::string MessageRow::convert_links(const std::string &slack_markup,
     pango_markup.append(convert_link((*re_it)[1].str()));
     pos = re_it->position() + re_it->length();
   }
+  if (!is_message) {
+    pango_markup.append("<span color=\"")
+        .append(non_message_color)
+        .append("\">");
+  }
   pango_markup.append(slack_markup, pos, slack_markup.size() - pos);
+  if (!is_message) {
+    pango_markup.append("</span>");
+  }
 
   return pango_markup;
 }
