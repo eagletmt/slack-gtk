@@ -16,7 +16,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
   pack_end(message_entry_, Gtk::PACK_SHRINK);
 
   messages_scrolled_window_.add(messages_list_box_);
-  messages_scrolled_window_.set_policy(Gtk::POLICY_AUTOMATIC,
+  messages_scrolled_window_.set_policy(Gtk::POLICY_NEVER,
                                        Gtk::POLICY_AUTOMATIC);
 
   show_all_children();
@@ -40,6 +40,7 @@ void ChannelWindow::on_message_signal(const Json::Value& payload) {
   const Json::Value subtype_value = payload["subtype"];
 
   if (subtype_value.isNull()) {
+    std::cout << payload << std::endl;
     oss << "User " << payload["user"] << " sent message " << payload["text"];
   } else {
     const std::string subtype = subtype_value.asString();
