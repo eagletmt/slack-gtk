@@ -37,19 +37,17 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
   message_label_.set_line_wrap_mode(Pango::WRAP_WORD_CHAR);
 
   const Json::Value subtype_value = payload["subtype"];
+  std::string text = payload["text"].asString();
 
-  if (subtype_value.isNull()) {
-    const std::string user_id = payload["user"].asString();
-    boost::optional<user> ou = users_store_.find(user_id);
-    if (ou) {
-      const user &u = ou.get();
-      user_label_.set_text(u.name);
-      load_user_icon(u.profile.image_72);
-    } else {
-      std::cerr << "[MessageRow] cannot find user " << user_id;
-      user_label_.set_text(user_id);
-    }
-  } else {
+  const std::string user_id = payload["user"].asString();
+  const boost::optional<user> o_user = users_store_.find(user_id);
+  if (o_user) {
+    const user &user = o_user.get();
+    user_label_.set_text(user.name);
+    load_user_icon(user.profile.image_72);
+  }
+
+  if (!subtype_value.isNull()) {
     const std::string subtype = subtype_value.asString();
     if (subtype == "bot_message") {
       user_label_.set_text(payload["username"].asString() + " [BOT]");
@@ -72,12 +70,35 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
         std::cerr << "[MessageRow] cannot load bot icon: " << payload
                   << std::endl;
       }
+    } else if (subtype == "channel_join") {
+      const Json::Value inviter_value = payload["inviter"];
+      if (inviter_value.isString()) {
+        const boost::optional<user> o_inviter =
+            users_store_.find(inviter_value.asString());
+        if (o_inviter) {
+          const user &inviter = o_inviter.get();
+          text.append(" by invitation from <@")
+              .append(inviter.id)
+              .append("|")
+              .append(inviter.name)
+              .append(">");
+
+        } else {
+          std::cerr << "[MessageRow] cannot find channel_join inviter "
+                    << inviter_value << std::endl;
+        }
+      }
+    } else if (subtype == "bot_add") {
+      // nothing special
+    } else if (subtype == "bot_remove") {
+      // nothing special
     } else {
-      std::cout << "subtype " << subtype << ": \n" << payload << std::endl;
+      std::cout << "Unhandled subtype " << subtype << ": \n"
+                << payload << std::endl;
     }
   }
 
-  message_label_.set_markup(convert_links(payload["text"].asString()));
+  message_label_.set_markup(convert_links(text));
 
   show_all_children();
 }
