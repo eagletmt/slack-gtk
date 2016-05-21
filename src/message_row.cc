@@ -49,10 +49,19 @@ MessageRow::MessageRow(const users_store &users_store,
       user_label_.set_text(payload["username"].asString() + " [BOT]");
       const Json::Value image64 = payload["icons"]["image_64"];
       const Json::Value image48 = payload["icons"]["image_48"];
+      const Json::Value bot_id = payload["bot_id"];
       if (image64.isString()) {
         load_user_icon(image64.asString());
       } else if (image48.isString()) {
         load_user_icon(image48.asString());
+      } else if (bot_id.isString()) {
+        const boost::optional<user> ou = users_store_.find(bot_id.asString());
+        if (ou) {
+          load_user_icon(ou.get().profile.image_72);
+        } else {
+          std::cerr << "[MessageRow] cannot find bot user  " << bot_id
+                    << std::endl;
+        }
       } else {
         std::cerr << "[MessageRow] cannot load bot icon: " << payload
                   << std::endl;

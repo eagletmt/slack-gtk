@@ -3,9 +3,7 @@
 #include "channel_window.h"
 
 MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
-    : box_(Gtk::ORIENTATION_HORIZONTAL),
-      rtm_client_(json),
-      users_store_(json["users"]) {
+    : box_(Gtk::ORIENTATION_HORIZONTAL), rtm_client_(json), users_store_(json) {
   add(box_);
 
   box_.pack_start(channels_sidebar_, Gtk::PACK_SHRINK);
