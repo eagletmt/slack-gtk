@@ -59,7 +59,7 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
       } else if (bot_id.isString()) {
         const boost::optional<user> ou = users_store_.find(bot_id.asString());
         if (ou) {
-          load_user_icon(ou.get().profile.image_72);
+          load_user_icon(ou.get().icons.image_72);
         } else {
           std::cerr << "[MessageRow] cannot find bot user  " << bot_id
                     << std::endl;
@@ -82,10 +82,6 @@ MessageRow::~MessageRow() {
 }
 
 void MessageRow::load_user_icon(const std::string &icon_url) {
-  if (icon_url.empty()) {
-    std::cerr << "Invalid icon_url!" << std::endl;
-    return;
-  }
   icon_loader_.load(icon_url, std::bind(&MessageRow::on_user_icon_loaded, this,
                                         std::placeholders::_1));
 }

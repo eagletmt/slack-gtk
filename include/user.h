@@ -9,12 +9,13 @@
 struct user {
   std::string id;
   std::string name;
-  user_profile profile;
+  user_profile profile, icons;
 
   user(const Json::Value& user)
       : id(user["id"].asString()),
         name(user["name"].asString()),
-        profile(user["profile"]) {
+        profile(user["profile"]),
+        icons(user["icons"]) {
   }
 };
 
