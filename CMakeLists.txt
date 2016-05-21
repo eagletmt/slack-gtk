@@ -2,7 +2,7 @@ project(slack-gtk CXX)
 cmake_minimum_required(VERSION 2.8)
 
 include(FindPkgConfig)
-pkg_check_modules(libsoup REQUIRED libsoup-2.4 libssl libcrypto)
+pkg_check_modules(libsoup REQUIRED libsoup-2.4)
 include_directories(${libsoup_INCLUDE_DIRS})
 link_directories(${libsoup_LIBRARY_DIRS})
 link_libraries(${libsoup_LIBRARIES})
