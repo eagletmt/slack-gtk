@@ -3,6 +3,7 @@
 #include "message_row.h"
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
+                             const users_store& users_store,
                              const Json::Value& channel)
     : messages_scrolled_window_(),
       messages_list_box_(),
@@ -10,7 +11,8 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
 
       id_(channel["id"].asString()),
       name_(channel["name"].asString()),
-      api_client_(api_client) {
+      api_client_(api_client),
+      users_store_(users_store) {
   set_orientation(Gtk::ORIENTATION_VERTICAL);
   pack_start(messages_scrolled_window_);
   pack_end(message_entry_, Gtk::PACK_SHRINK);
@@ -36,23 +38,7 @@ const std::string& ChannelWindow::name() const {
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
-  std::ostringstream oss;
-  const Json::Value subtype_value = payload["subtype"];
-
-  if (subtype_value.isNull()) {
-    std::cout << payload << std::endl;
-    oss << "User " << payload["user"] << " sent message " << payload["text"];
-  } else {
-    const std::string subtype = subtype_value.asString();
-    if (subtype == "bot_message") {
-      oss << "Bot " << payload["username"] << " (bot_id=" << payload["bot_id"]
-          << ") sent message " << payload["text"];
-    } else {
-      oss << "subtype " << subtype << ": " << payload["text"];
-    }
-  }
-
-  auto row = Gtk::manage(new MessageRow(oss.str()));
+  auto row = Gtk::manage(new MessageRow(users_store_, payload));
   messages_list_box_.append(*row);
   row->show();
 }

@@ -7,10 +7,12 @@
 #include <json/json.h>
 #include "api_client.h"
 #include "message_entry.h"
+#include "users_store.h"
 
 class ChannelWindow : public Gtk::Box {
  public:
-  ChannelWindow(const api_client& api_client, const Json::Value& channel);
+  ChannelWindow(const api_client& api_client, const users_store& users_store,
+                const Json::Value& channel);
 
   const std::string& id() const;
   const std::string& name() const;
@@ -26,6 +28,7 @@ class ChannelWindow : public Gtk::Box {
   std::string id_;
   std::string name_;
   api_client api_client_;
+  const users_store& users_store_;
 };
 
 #endif

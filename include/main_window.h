@@ -7,6 +7,7 @@
 #include <gtkmm/stacksidebar.h>
 #include "api_client.h"
 #include "rtm_client.h"
+#include "users_store.h"
 
 class MainWindow : public Gtk::ApplicationWindow {
  public:
@@ -28,5 +29,6 @@ class MainWindow : public Gtk::ApplicationWindow {
   Gtk::Stack channels_stack_;
 
   rtm_client rtm_client_;
+  users_store users_store_;
 };
 #endif
