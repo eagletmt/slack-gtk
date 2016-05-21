@@ -6,7 +6,8 @@
 #include <iostream>
 #include <regex>
 
-MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
+MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
+                       const users_store &users_store,
                        const Json::Value &payload)
     : hbox_(Gtk::ORIENTATION_HORIZONTAL),
       vbox_(Gtk::ORIENTATION_VERTICAL),
@@ -16,7 +17,10 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
       message_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+      file_image_(Gtk::Stock::MISSING_IMAGE,
+                  Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
 
+      api_client_(api_client),
       icon_loader_(icon_loader),
       users_store_(users_store) {
   add(hbox_);
@@ -25,7 +29,6 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
   hbox_.pack_end(vbox_);
 
   vbox_.pack_start(info_hbox_, Gtk::PACK_SHRINK);
-  vbox_.pack_end(message_label_);
 
   info_hbox_.pack_start(user_label_, Gtk::PACK_SHRINK);
   info_hbox_.pack_end(timestamp_label_, Gtk::PACK_SHRINK);
@@ -106,11 +109,15 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
       // nothing special
     } else if (subtype == "bot_remove") {
       // nothing special
+    } else if (subtype == "file_share") {
+      vbox_.pack_end(file_image_, Gtk::PACK_SHRINK);
+      load_shared_file(payload);
     } else {
       std::cout << "Unhandled subtype " << subtype << ": \n"
                 << payload << std::endl;
     }
   }
+  vbox_.pack_end(message_label_);
 
   message_label_.set_markup(convert_links(text, is_message));
 
@@ -210,4 +217,21 @@ std::string MessageRow::convert_link(const std::string &linker) const {
       .append("\">")
       .append(link_name)
       .append("</a>");
+}
+
+void MessageRow::load_shared_file(const Json::Value &payload) {
+  // TODO: Animated GIF support
+  const Json::Value thumb_url = payload["file"]["thumb_360"];
+  if (thumb_url.isString()) {
+    api_client_.get_shared_file(thumb_url.asString(),
+                                std::bind(&MessageRow::on_shared_file_loaded,
+                                          this, std::placeholders::_1));
+  } else {
+    std::cerr << "[MessageRow] Invalid file_share payload " << payload
+              << std::endl;
+  }
+}
+
+void MessageRow::on_shared_file_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
+  file_image_.set(pixbuf);
 }

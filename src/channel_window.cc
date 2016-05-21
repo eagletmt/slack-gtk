@@ -44,7 +44,8 @@ const std::string& ChannelWindow::name() const {
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
-  auto row = Gtk::manage(new MessageRow(icon_loader_, users_store_, payload));
+  auto row = Gtk::manage(
+      new MessageRow(api_client_, icon_loader_, users_store_, payload));
   messages_list_box_.append(*row);
   row->show();
 }

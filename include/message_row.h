@@ -7,18 +7,23 @@
 #include <gtkmm/listboxrow.h>
 #include <libsoup/soup-message.h>
 #include <libsoup/soup-session.h>
+#include "api_client.h"
 #include "icon_loader.h"
 #include "users_store.h"
 
 class MessageRow : public Gtk::ListBoxRow {
  public:
-  MessageRow(icon_loader& icon_loader, const users_store& users_store,
-             const Json::Value& payload);
+  MessageRow(const api_client& api_client, icon_loader& icon_loader,
+             const users_store& users_store, const Json::Value& payload);
   virtual ~MessageRow();
 
  private:
   void load_user_icon(const std::string& url);
   void on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);
+
+  void load_shared_file(const Json::Value& payload);
+  void on_shared_file_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);
+
   std::string convert_links(const std::string& slack_markup,
                             bool is_message) const;
   std::string convert_link(const std::string& linker) const;
@@ -28,7 +33,9 @@ class MessageRow : public Gtk::ListBoxRow {
   Gtk::Label user_label_;
   Gtk::Label timestamp_label_;
   Gtk::Label message_label_;
+  Gtk::Image file_image_;
 
+  api_client api_client_;
   icon_loader& icon_loader_;
   const users_store& users_store_;
 };
