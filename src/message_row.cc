@@ -5,10 +5,6 @@
 #include <iostream>
 #include <regex>
 
-static std::string convert_links(const std::string &slack_markup,
-                                 bool is_message);
-static std::string convert_link(const std::string &linker);
-
 MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
                        const Json::Value &payload)
     : hbox_(Gtk::ORIENTATION_HORIZONTAL),
@@ -123,7 +119,8 @@ void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
 }
 
-std::string convert_links(const std::string &slack_markup, bool is_message) {
+std::string MessageRow::convert_links(const std::string &slack_markup,
+                                      bool is_message) const {
   std::regex markup_re("<([^<>]*)>");
   std::sregex_iterator re_it(slack_markup.begin(), slack_markup.end(),
                              markup_re),
@@ -155,51 +152,52 @@ std::string convert_links(const std::string &slack_markup, bool is_message) {
 }
 
 // https://api.slack.com/docs/formatting
-std::string convert_link(const std::string &linker) {
+std::string MessageRow::convert_link(const std::string &linker) const {
   std::regex url_re("^(.+)\\|(.+)$");
   std::smatch match;
-  std::string ret;
+  std::string link_id, link_name;
 
   if (std::regex_match(linker, match, url_re)) {
     const std::string &left = match[1];
     const std::string &right = match[2];
+    link_id = left;
     switch (left[0]) {
       case '@':
       case '#':
-        ret.append("<a href=\"")
-            .append(left)
-            .append("\">")
-            .append(left, 0, 1)
-            .append(right)
-            .append("</a>");
+        link_name = std::string(left, 0, 1).append(right);
         break;
       default:
-        ret.append("<a href=\"")
-            .append(left)
-            .append("\">")
-            .append(right)
-            .append("</a>");
+        link_id = left;
+        link_name = right;
         break;
     }
   } else {
+    link_id = linker;
     switch (linker[0]) {
-      case '@':
+      case '@': {
+        const boost::optional<user> o_user =
+            users_store_.find(linker.substr(1, linker.size() - 1));
+        if (o_user) {
+          link_name = "@" + o_user.get().name;
+        } else {
+          std::cerr << "[MessageRow] cannot find linked user " << linker
+                    << std::endl;
+          link_name = link_id;
+        }
+      } break;
       case '#':
-        // TODO: Resolve user id and channel id
-        ret.append("<a href=\"")
-            .append(linker)
-            .append("\">")
-            .append(linker)
-            .append("</a>");
+        // TODO: Resolve channel name
+        link_name = link_id;
         break;
       default:
-        ret.append("<a href=\"")
-            .append(linker)
-            .append("\">")
-            .append(linker)
-            .append("</a>");
+        link_name = link_id;
         break;
     }
   }
-  return ret;
+
+  return std::string("<a href=\"")
+      .append(link_id)
+      .append("\">")
+      .append(link_name)
+      .append("</a>");
 }

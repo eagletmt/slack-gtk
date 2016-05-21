@@ -19,7 +19,9 @@ class MessageRow : public Gtk::ListBoxRow {
  private:
   void load_user_icon(const std::string& url);
   void on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);
-  static Gtk::IconSize user_icon_size();
+  std::string convert_links(const std::string& slack_markup,
+                            bool is_message) const;
+  std::string convert_link(const std::string& linker) const;
 
   Gtk::Box hbox_, vbox_;
   Gtk::Image user_image_;
