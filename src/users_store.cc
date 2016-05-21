@@ -2,10 +2,10 @@
 
 users_store::users_store(const Json::Value& json) {
   for (const Json::Value& u : json["users"]) {
-    users_.insert(std::make_pair(u["id"].asString(), user(u)));
+    users_.emplace(std::make_pair(u["id"].asString(), user(u)));
   }
   for (const Json::Value& u : json["bots"]) {
-    users_.insert(std::make_pair(u["id"].asString(), user(u)));
+    users_.emplace(std::make_pair(u["id"].asString(), user(u)));
   }
 }
 

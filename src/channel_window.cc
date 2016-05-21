@@ -26,7 +26,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
   show_all_children();
 
   std::map<std::string, std::string> params;
-  params.insert(std::make_pair("channel", id()));
+  params.emplace(std::make_pair("channel", id()));
   api_client_.queue_post("channels.history", params,
                          std::bind(&ChannelWindow::on_channels_history, this,
                                    std::placeholders::_1));

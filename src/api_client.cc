@@ -81,7 +81,7 @@ void api_client::queue_post(const std::string& method_name,
                             const std::map<std::string, std::string>& params,
                             const post_callback_type& callback) {
   SoupMessage* message = build_message(method_name, params);
-  callback_registry_.insert(
+  callback_registry_.emplace(
       std::make_pair(reinterpret_cast<std::intptr_t>(message), callback));
   soup_session_queue_message(session_, message, queue_callback, this);
 }
