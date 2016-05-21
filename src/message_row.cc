@@ -73,8 +73,10 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
                     << std::endl;
         }
       } else {
-        std::cerr << "[MessageRow] cannot load bot icon: " << payload
-                  << std::endl;
+        const std::string default_icon_url =
+            "https://i0.wp.com/slack-assets2.s3-us-west-2.amazonaws.com/8390/"
+            "img/avatars/ava_0002-48.png";
+        load_user_icon(default_icon_url);
       }
     } else if (subtype == "channel_join") {
       const Json::Value inviter_value = payload["inviter"];
