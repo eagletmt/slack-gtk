@@ -24,10 +24,15 @@ void icon_loader::load(const std::string &url,
     callback(pixbuf);
     return;
   }
-  SoupMessage *message = soup_message_new("GET", url.c_str());
-  load_callback_registry_.insert(
-      std::make_pair(reinterpret_cast<std::intptr_t>(message), callback));
-  soup_session_queue_message(session_, message, load_callback, this);
+
+  auto it = load_callback_registry_.find(url);
+  if (it == load_callback_registry_.end()) {
+    SoupMessage *message = soup_message_new("GET", url.c_str());
+    load_callback_registry_.emplace(std::make_pair(url, callback));
+    soup_session_queue_message(session_, message, load_callback, this);
+  } else {
+    load_callback_registry_.emplace(std::make_pair(url, callback));
+  }
 }
 
 static std::string build_cache_path(const std::string &base, std::string url) {
@@ -45,7 +50,6 @@ static void ensure_directory(const std::string &path) try {
 
 Glib::RefPtr<Gdk::Pixbuf> icon_loader::load_from_cache(
     const std::string &url) const {
-  // TODO: If the icon is loading now by another call, should re-use it.
   ensure_directory(cache_directory_);
   const std::string cache_path = build_cache_path(cache_directory_, url);
   if (Glib::file_test(cache_path,
@@ -71,10 +75,9 @@ void icon_loader::load_callback(SoupSession *, SoupMessage *message,
 }
 
 void icon_loader::on_load(SoupMessage *message) {
-  auto it =
-      load_callback_registry_.find(reinterpret_cast<std::intptr_t>(message));
   char *uri_c = soup_uri_to_string(soup_message_get_uri(message), FALSE);
   const std::string uri(uri_c);
+  auto equal_range = load_callback_registry_.equal_range(uri);
 
   if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
     std::cerr << "[icon_loader] " << uri << " (" << message->status_code << ") "
@@ -87,13 +90,12 @@ void icon_loader::on_load(SoupMessage *message) {
         reinterpret_cast<const guint8 *>(message->response_body->data),
         message->response_body->length);
     loader->close();
-    if (it != load_callback_registry_.end()) {
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = loader->get_pixbuf();
+    for (auto it = equal_range.first; it != equal_range.second; ++it) {
       (it->second)(loader->get_pixbuf());
     }
   }
 
-  if (it != load_callback_registry_.end()) {
-    load_callback_registry_.erase(it);
-  }
+  load_callback_registry_.erase(equal_range.first, equal_range.second);
   g_free(uri_c);
 }

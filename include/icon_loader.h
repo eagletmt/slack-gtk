@@ -4,7 +4,6 @@
 #include <gdkmm/pixbuf.h>
 #include <glibmm/refptr.h>
 #include <libsoup/soup-session.h>
-#include <cstdint>
 #include <functional>
 #include <string>
 
@@ -25,7 +24,7 @@ class icon_loader {
                    std::size_t size) const;
 
   std::string cache_directory_;
-  std::map<std::intptr_t, load_callback_type> load_callback_registry_;
+  std::multimap<std::string, load_callback_type> load_callback_registry_;
   SoupSession* session_;
 };
 
