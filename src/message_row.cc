@@ -1,5 +1,6 @@
 #include "message_row.h"
 #include <gdkmm/pixbufloader.h>
+#include <glibmm/datetime.h>
 #include <gtkmm/stock.h>
 #include <libsoup/soup-uri.h>
 #include <iostream>
@@ -9,9 +10,11 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
                        const Json::Value &payload)
     : hbox_(Gtk::ORIENTATION_HORIZONTAL),
       vbox_(Gtk::ORIENTATION_VERTICAL),
+      info_hbox_(Gtk::ORIENTATION_HORIZONTAL),
       user_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+      timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
       message_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
 
       icon_loader_(icon_loader),
@@ -21,14 +24,21 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
   hbox_.pack_start(user_image_, Gtk::PACK_SHRINK);
   hbox_.pack_end(vbox_);
 
-  vbox_.pack_start(user_label_, Gtk::PACK_SHRINK);
+  vbox_.pack_start(info_hbox_, Gtk::PACK_SHRINK);
   vbox_.pack_end(message_label_);
+
+  info_hbox_.pack_start(user_label_, Gtk::PACK_SHRINK);
+  info_hbox_.pack_end(timestamp_label_, Gtk::PACK_SHRINK);
 
   Pango::AttrList attrs;
   Pango::Attribute weight =
       Pango::Attribute::create_attr_weight(Pango::WEIGHT_BOLD);
   attrs.insert(weight);
   user_label_.set_attributes(attrs);
+
+  const double ts = std::stof(payload["ts"].asString());
+  const Glib::DateTime timestamp = Glib::DateTime::create_now_local(gint64(ts));
+  timestamp_label_.set_text(timestamp.format("%F %R"));
 
   message_label_.set_line_wrap(true);
   message_label_.set_line_wrap_mode(Pango::WRAP_WORD_CHAR);

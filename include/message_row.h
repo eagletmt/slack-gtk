@@ -23,9 +23,10 @@ class MessageRow : public Gtk::ListBoxRow {
                             bool is_message) const;
   std::string convert_link(const std::string& linker) const;
 
-  Gtk::Box hbox_, vbox_;
+  Gtk::Box hbox_, vbox_, info_hbox_;
   Gtk::Image user_image_;
   Gtk::Label user_label_;
+  Gtk::Label timestamp_label_;
   Gtk::Label message_label_;
 
   icon_loader& icon_loader_;
