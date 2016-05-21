@@ -4,7 +4,7 @@
 #include <libsoup/soup-uri.h>
 #include <iostream>
 
-MessageRow::MessageRow(const users_store &users_store,
+MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
                        const Json::Value &payload)
     : hbox_(Gtk::ORIENTATION_HORIZONTAL),
       vbox_(Gtk::ORIENTATION_VERTICAL),
@@ -12,6 +12,8 @@ MessageRow::MessageRow(const users_store &users_store,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       message_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+
+      icon_loader_(icon_loader),
       users_store_(users_store) {
   add(hbox_);
 
@@ -80,34 +82,14 @@ MessageRow::~MessageRow() {
 }
 
 void MessageRow::load_user_icon(const std::string &icon_url) {
-  // TODO: Cache user icons
-  SoupSession *session = soup_session_new();
-  SoupMessage *message = soup_message_new("GET", icon_url.c_str());
-  soup_session_queue_message(session, message, load_user_icon_callback, this);
-}
-
-void MessageRow::load_user_icon_callback(SoupSession *session,
-                                         SoupMessage *message,
-                                         gpointer user_data) {
-  static_cast<MessageRow *>(user_data)->on_user_icon_loaded(session, message);
-}
-
-void MessageRow::on_user_icon_loaded(SoupSession *session,
-                                     SoupMessage *message) {
-  if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
-    char *uri = soup_uri_to_string(soup_message_get_uri(message), FALSE);
-    std::cerr << "libsoup: " << uri << " (" << message->status_code << ") "
-              << soup_status_get_phrase(message->status_code) << std::endl;
-    g_free(uri);
-  } else {
-    Glib::RefPtr<Gdk::PixbufLoader> loader = Gdk::PixbufLoader::create();
-    loader->write(
-        reinterpret_cast<const guint8 *>(message->response_body->data),
-        message->response_body->length);
-    loader->close();
-    user_image_.set(
-        loader->get_pixbuf()->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
+  if (icon_url.empty()) {
+    std::cerr << "Invalid icon_url!" << std::endl;
+    return;
   }
+  icon_loader_.load(icon_url, std::bind(&MessageRow::on_user_icon_loaded, this,
+                                        std::placeholders::_1));
+}
 
-  g_object_unref(session);
+void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
+  user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
 }

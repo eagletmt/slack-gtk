@@ -4,6 +4,7 @@
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
                              const users_store& users_store,
+                             icon_loader& icon_loader,
                              const Json::Value& channel)
     : messages_scrolled_window_(),
       messages_list_box_(),
@@ -12,7 +13,8 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
       id_(channel["id"].asString()),
       name_(channel["name"].asString()),
       api_client_(api_client),
-      users_store_(users_store) {
+      users_store_(users_store),
+      icon_loader_(icon_loader) {
   set_orientation(Gtk::ORIENTATION_VERTICAL);
   pack_start(messages_scrolled_window_);
   pack_end(message_entry_, Gtk::PACK_SHRINK);
@@ -38,7 +40,7 @@ const std::string& ChannelWindow::name() const {
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
-  auto row = Gtk::manage(new MessageRow(users_store_, payload));
+  auto row = Gtk::manage(new MessageRow(icon_loader_, users_store_, payload));
   messages_list_box_.append(*row);
   row->show();
 }

@@ -6,6 +6,7 @@
 #include <gtkmm/stack.h>
 #include <gtkmm/stacksidebar.h>
 #include "api_client.h"
+#include "icon_loader.h"
 #include "rtm_client.h"
 #include "users_store.h"
 
@@ -30,5 +31,6 @@ class MainWindow : public Gtk::ApplicationWindow {
 
   rtm_client rtm_client_;
   users_store users_store_;
+  icon_loader icon_loader_;
 };
 #endif

@@ -3,7 +3,11 @@
 #include "channel_window.h"
 
 MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
-    : box_(Gtk::ORIENTATION_HORIZONTAL), rtm_client_(json), users_store_(json) {
+    : box_(Gtk::ORIENTATION_HORIZONTAL),
+      rtm_client_(json),
+      users_store_(json),
+      // TODO: Use proper directory
+      icon_loader_("icons") {
   add(box_);
 
   box_.pack_start(channels_sidebar_, Gtk::PACK_SHRINK);
@@ -26,7 +30,8 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
 
   for (const Json::Value& channel : json["channels"]) {
     const std::string name = channel["name"].asString();
-    auto w = Gtk::manage(new ChannelWindow(api_client, users_store_, channel));
+    auto w = Gtk::manage(
+        new ChannelWindow(api_client, users_store_, icon_loader_, channel));
     channels_stack_.add(*w, w->id(), w->name());
   }
 
