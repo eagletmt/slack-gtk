@@ -3,39 +3,48 @@
 
 MessageRow::MessageRow(const users_store& users_store,
                        const Json::Value& payload)
-    : label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+    : vbox_(Gtk::ORIENTATION_VERTICAL),
+      user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+      message_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       users_store_(users_store) {
-  add(label_);
-  label_.set_line_wrap(true);
-  label_.set_line_wrap_mode(Pango::WRAP_WORD_CHAR);
-  label_.set_text(build_text(payload));
-  label_.show();
-}
+  add(vbox_);
 
-MessageRow::~MessageRow() {
-}
+  vbox_.pack_start(user_label_, Gtk::PACK_SHRINK);
+  vbox_.pack_end(message_label_);
 
-std::string MessageRow::build_text(const Json::Value& payload) {
-  std::ostringstream oss;
+  Pango::AttrList attrs;
+  Pango::Attribute weight =
+      Pango::Attribute::create_attr_weight(Pango::WEIGHT_BOLD);
+  attrs.insert(weight);
+  user_label_.set_attributes(attrs);
+
+  message_label_.set_line_wrap(true);
+  message_label_.set_line_wrap_mode(Pango::WRAP_WORD_CHAR);
+
   const Json::Value subtype_value = payload["subtype"];
 
   if (subtype_value.isNull()) {
-    boost::optional<user> ou = users_store_.find(payload["user"].asString());
+    const std::string user_id = payload["user"].asString();
+    boost::optional<user> ou = users_store_.find(user_id);
     if (ou) {
-      const user& u = ou.get();
-      oss << "User " << u.name << " sent message " << payload["text"];
+      user_label_.set_text(ou.get().name);
     } else {
-      oss << "User " << payload["user"] << " sent message " << payload["text"];
+      std::cerr << "[MessageRow] cannot find user " << user_id;
+      user_label_.set_text(user_id);
     }
   } else {
     const std::string subtype = subtype_value.asString();
     if (subtype == "bot_message") {
-      oss << "Bot " << payload["username"] << " (bot_id=" << payload["bot_id"]
-          << ") sent message " << payload["text"];
+      user_label_.set_text(payload["username"].asString() + " [BOT]");
     } else {
-      oss << "subtype " << subtype << ": " << payload["text"];
+      std::cout << "subtype " << subtype << ": \n" << payload << std::endl;
     }
   }
 
-  return oss.str();
+  message_label_.set_text(payload["text"].asString());
+
+  show_all_children();
+}
+
+MessageRow::~MessageRow() {
 }
