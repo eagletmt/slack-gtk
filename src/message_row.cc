@@ -5,7 +5,8 @@
 #include <iostream>
 #include <regex>
 
-static std::string convert_links(const std::string &slack_markup);
+static std::string convert_links(const std::string &slack_markup,
+                                 bool is_message);
 static std::string convert_link(const std::string &linker);
 
 MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
@@ -47,9 +48,14 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
     load_user_icon(user.profile.image_72);
   }
 
-  if (!subtype_value.isNull()) {
+  bool is_message = false;
+
+  if (subtype_value.isNull()) {
+    is_message = true;
+  } else {
     const std::string subtype = subtype_value.asString();
     if (subtype == "bot_message") {
+      is_message = true;
       user_label_.set_text(payload["username"].asString() + " [BOT]");
       const Json::Value image64 = payload["icons"]["image_64"];
       const Json::Value image48 = payload["icons"]["image_48"];
@@ -98,7 +104,7 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
     }
   }
 
-  message_label_.set_markup(convert_links(text));
+  message_label_.set_markup(convert_links(text, is_message));
 
   show_all_children();
 }
@@ -115,7 +121,7 @@ void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
 }
 
-std::string convert_links(const std::string &slack_markup) {
+std::string convert_links(const std::string &slack_markup, bool is_message) {
   std::regex markup_re("<([^<>]*)>");
   std::sregex_iterator re_it(slack_markup.begin(), slack_markup.end(),
                              markup_re),
@@ -126,10 +132,19 @@ std::string convert_links(const std::string &slack_markup) {
 
   std::string pango_markup;
   std::size_t pos = 0;
+  static const std::string non_message_color = "#aaa";
 
   for (; re_it != re_end; ++re_it) {
-    pango_markup.append(slack_markup, pos, re_it->position() - pos)
-        .append(convert_link((*re_it)[1].str()));
+    if (!is_message) {
+      pango_markup.append("<span color=\"")
+          .append(non_message_color)
+          .append("\">");
+    }
+    pango_markup.append(slack_markup, pos, re_it->position() - pos);
+    if (!is_message) {
+      pango_markup.append("</span>");
+    }
+    pango_markup.append(convert_link((*re_it)[1].str()));
     pos = re_it->position() + re_it->length();
   }
   pango_markup.append(slack_markup, pos, slack_markup.size() - pos);
