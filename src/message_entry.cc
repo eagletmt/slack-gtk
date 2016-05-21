@@ -17,6 +17,7 @@ void MessageEntry::on_activate() {
   params["channel"] = channel_id_;
   params["text"] = text.raw();
   params["as_user"] = "true";
+  params["parse"] = "full";
   auto result = api_client_.post("chat.postMessage", params);
   if (result) {
     std::cout << result.get() << std::endl;
