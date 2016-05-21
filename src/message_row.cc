@@ -3,6 +3,10 @@
 #include <gtkmm/stock.h>
 #include <libsoup/soup-uri.h>
 #include <iostream>
+#include <regex>
+
+static std::string convert_links(const std::string &slack_markup);
+static std::string convert_link(const std::string &linker);
 
 MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
                        const Json::Value &payload)
@@ -73,7 +77,7 @@ MessageRow::MessageRow(icon_loader &icon_loader, const users_store &users_store,
     }
   }
 
-  message_label_.set_text(payload["text"].asString());
+  message_label_.set_markup(convert_links(payload["text"].asString()));
 
   show_all_children();
 }
@@ -88,4 +92,76 @@ void MessageRow::load_user_icon(const std::string &icon_url) {
 
 void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
+}
+
+std::string convert_links(const std::string &slack_markup) {
+  std::regex markup_re("<([^<>]*)>");
+  std::sregex_iterator re_it(slack_markup.begin(), slack_markup.end(),
+                             markup_re),
+      re_end;
+  if (re_it == re_end) {
+    return slack_markup;
+  }
+
+  std::string pango_markup;
+  std::size_t pos = 0;
+
+  for (; re_it != re_end; ++re_it) {
+    pango_markup.append(slack_markup, pos, re_it->position() - pos)
+        .append(convert_link((*re_it)[1].str()));
+    pos = re_it->position() + re_it->length();
+  }
+  pango_markup.append(slack_markup, pos, slack_markup.size() - pos);
+
+  return pango_markup;
+}
+
+// https://api.slack.com/docs/formatting
+std::string convert_link(const std::string &linker) {
+  std::regex url_re("^(.+)\\|(.+)$");
+  std::smatch match;
+  std::string ret;
+
+  if (std::regex_match(linker, match, url_re)) {
+    const std::string &left = match[1];
+    const std::string &right = match[2];
+    switch (left[0]) {
+      case '@':
+      case '#':
+        ret.append("<a href=\"")
+            .append(left)
+            .append("\">")
+            .append(left, 0, 1)
+            .append(right)
+            .append("</a>");
+        break;
+      default:
+        ret.append("<a href=\"")
+            .append(left)
+            .append("\">")
+            .append(right)
+            .append("</a>");
+        break;
+    }
+  } else {
+    switch (linker[0]) {
+      case '@':
+      case '#':
+        // TODO: Resolve user id and channel id
+        ret.append("<a href=\"")
+            .append(linker)
+            .append("\">")
+            .append(linker)
+            .append("</a>");
+        break;
+      default:
+        ret.append("<a href=\"")
+            .append(linker)
+            .append("\">")
+            .append(linker)
+            .append("</a>");
+        break;
+    }
+  }
+  return ret;
 }
