@@ -1,5 +1,7 @@
 #include "channel_window.h"
+#include <gtkmm/scrollbar.h>
 #include <iostream>
+#include "bottom_adjustment.h"
 #include "message_row.h"
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
@@ -22,6 +24,8 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
   messages_scrolled_window_.add(messages_list_box_);
   messages_scrolled_window_.set_policy(Gtk::POLICY_NEVER,
                                        Gtk::POLICY_AUTOMATIC);
+  messages_scrolled_window_.set_vadjustment(
+      BottomAdjustment::create(messages_scrolled_window_.get_vadjustment()));
 
   show_all_children();
 

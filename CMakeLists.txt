@@ -26,6 +26,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 include_directories("${CMAKE_SOURCE_DIR}/include")
 set(SOURCES
   src/api_client.cc
+  src/bottom_adjustment.cc
   src/channel_window.cc
   src/icon_loader.cc
   src/main.cc
