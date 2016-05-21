@@ -34,6 +34,8 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
     if (is_member) {
       auto w = Gtk::manage(
           new ChannelWindow(api_client, users_store_, icon_loader_, channel));
+      w->channel_link_signal().connect(
+          sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
       channels_stack_.add(*w, w->id(), w->name());
     }
   }
@@ -86,4 +88,13 @@ void MainWindow::on_channel_marked_signal(const Json::Value& payload) {
 
 void MainWindow::append_message(const std::string& text) {
   std::cout << text << std::endl;
+}
+
+void MainWindow::on_channel_link_clicked(const std::string& channel_id) {
+  Widget* widget = channels_stack_.get_child_by_name(channel_id);
+  if (widget == nullptr) {
+    std::cout << "TODO: Join " << channel_id << std::endl;
+  } else {
+    channels_stack_.set_visible_child(channel_id);
+  }
 }

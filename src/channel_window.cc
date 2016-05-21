@@ -47,6 +47,8 @@ void ChannelWindow::on_message_signal(const Json::Value& payload) {
   auto row = Gtk::manage(
       new MessageRow(api_client_, icon_loader_, users_store_, payload));
   messages_list_box_.append(*row);
+  row->channel_link_signal().connect(
+      sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
   row->show();
 }
 
@@ -65,4 +67,12 @@ void ChannelWindow::on_channels_history(
               << "] failed to load history from channels.history API"
               << std::endl;
   }
+}
+
+sigc::signal<void, const std::string&> ChannelWindow::channel_link_signal() {
+  return channel_link_signal_;
+}
+
+void ChannelWindow::on_channel_link_clicked(const std::string& channel_id) {
+  channel_link_signal_.emit(channel_id);
 }

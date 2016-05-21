@@ -118,6 +118,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
     }
   }
   vbox_.pack_end(message_label_);
+  message_label_.signal_activate_link().connect(
+      sigc::mem_fun(*this, &MessageRow::on_activate_link), false);
 
   message_label_.set_markup(convert_links(text, is_message));
 
@@ -234,4 +236,20 @@ void MessageRow::load_shared_file(const Json::Value &payload) {
 
 void MessageRow::on_shared_file_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   file_image_.set(pixbuf);
+}
+
+sigc::signal<void, const std::string &> MessageRow::channel_link_signal() {
+  return channel_link_signal_;
+}
+
+bool MessageRow::on_activate_link(const Glib::ustring &uri) {
+  if (uri[0] == '@') {
+    // TODO: emit user link signal
+    return true;
+  } else if (uri[0] == '#') {
+    channel_link_signal_.emit(uri.substr(1, uri.size() - 1));
+    return true;
+  } else {
+    return false;
+  }
 }

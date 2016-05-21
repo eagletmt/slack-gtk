@@ -23,6 +23,8 @@ class MainWindow : public Gtk::ApplicationWindow {
   void on_message_signal(const Json::Value& payload);
   void on_channel_marked_signal(const Json::Value& payload);
 
+  void on_channel_link_clicked(const std::string& channel_id);
+
   void append_message(const std::string& text);
 
   Gtk::Box box_;

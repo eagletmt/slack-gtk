@@ -17,9 +17,11 @@ class ChannelWindow : public Gtk::Box {
 
   const std::string& id() const;
   const std::string& name() const;
+  sigc::signal<void, const std::string&> channel_link_signal();
 
   void on_message_signal(const Json::Value& payload);
   void on_channels_history(const boost::optional<Json::Value>& result);
+  void on_channel_link_clicked(const std::string& channel_id);
 
  private:
   Gtk::ScrolledWindow messages_scrolled_window_;
@@ -31,6 +33,8 @@ class ChannelWindow : public Gtk::Box {
   api_client api_client_;
   const users_store& users_store_;
   icon_loader& icon_loader_;
+
+  sigc::signal<void, const std::string&> channel_link_signal_;
 };
 
 #endif
