@@ -1,5 +1,6 @@
 #include <glibmm/miscutils.h>
 #include <gtkmm/application.h>
+#include <fstream>
 #include <iostream>
 #include "api_client.h"
 #include "main_window.h"
@@ -17,7 +18,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
   const Json::Value json = result.get();
-  std::cout << json << std::endl;
+  {
+    std::ofstream ofs;
+    ofs.open("rtm.start.json");
+    ofs << json;
+  }
 
   auto app = Gtk::Application::create(argc, argv, "cc.wanko.slack-gtk");
   MainWindow window(api_client, json);
