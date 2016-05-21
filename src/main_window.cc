@@ -30,9 +30,12 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
 
   for (const Json::Value& channel : json["channels"]) {
     const std::string name = channel["name"].asString();
-    auto w = Gtk::manage(
-        new ChannelWindow(api_client, users_store_, icon_loader_, channel));
-    channels_stack_.add(*w, w->id(), w->name());
+    const bool is_member = channel["is_member"].asBool();
+    if (is_member) {
+      auto w = Gtk::manage(
+          new ChannelWindow(api_client, users_store_, icon_loader_, channel));
+      channels_stack_.add(*w, w->id(), w->name());
+    }
   }
 
   rtm_client_.start();
