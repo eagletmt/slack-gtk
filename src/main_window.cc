@@ -4,6 +4,7 @@
 
 MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
     : box_(Gtk::ORIENTATION_HORIZONTAL),
+      api_client_(api_client),
       rtm_client_(json),
       users_store_(json),
       channels_store_(json),
@@ -93,7 +94,27 @@ void MainWindow::append_message(const std::string& text) {
 void MainWindow::on_channel_link_clicked(const std::string& channel_id) {
   Widget* widget = channels_stack_.get_child_by_name(channel_id);
   if (widget == nullptr) {
-    std::cout << "TODO: Join " << channel_id << std::endl;
+    const boost::optional<channel> result = channels_store_.find(channel_id);
+    if (result) {
+      std::map<std::string, std::string> params;
+      const std::string& name = result.get().name;
+      params.emplace(std::make_pair("name", name));
+      const boost::optional<Json::Value> join_result =
+          api_client_.post("channels.join", params);
+      if (join_result) {
+        const Json::Value& join_response = join_result.get();
+        if (!join_response["ok"].asBool()) {
+          std::cerr << "[MainWindow] on_channel_link_clicked: Failed to join #"
+                    << name << ": " << join_response << std::endl;
+        }
+      } else {
+        std::cerr << "[MainWindow] on_channel_link_clicked: Failed to join #"
+                  << name << std::endl;
+      }
+    } else {
+      std::cerr << "[MainWindow] on_channel_link_clicked: Unknown channel "
+                << channel_id << std::endl;
+    }
   } else {
     channels_stack_.set_visible_child(channel_id);
   }

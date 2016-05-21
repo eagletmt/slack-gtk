@@ -32,6 +32,7 @@ class MainWindow : public Gtk::ApplicationWindow {
   Gtk::StackSidebar channels_sidebar_;
   Gtk::Stack channels_stack_;
 
+  api_client api_client_;
   rtm_client rtm_client_;
   users_store users_store_;
   channels_store channels_store_;
