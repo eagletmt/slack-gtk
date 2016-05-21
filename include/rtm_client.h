@@ -20,6 +20,8 @@ class rtm_client {
   message_signal_type pref_change_signal();
   message_signal_type message_signal();
   message_signal_type channel_marked_signal();
+  message_signal_type channel_joined_signal();
+  message_signal_type channel_left_signal();
 
  private:
   static void session_connect_callback(GObject* source, GAsyncResult* result,
@@ -47,7 +49,7 @@ class rtm_client {
 
   message_signal_type hello_signal_, reconnect_url_signal_,
       presence_change_signal_, pref_change_signal_, message_signal_,
-      channel_marked_signal_;
+      channel_marked_signal_, channel_joined_signal_, channel_left_signal_;
 };
 
 #endif

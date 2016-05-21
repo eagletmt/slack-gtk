@@ -29,6 +29,10 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
       sigc::mem_fun(*this, &MainWindow::on_message_signal));
   rtm_client_.channel_marked_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_marked_signal));
+  rtm_client_.channel_joined_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_channel_joined_signal));
+  rtm_client_.channel_left_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_channel_left_signal));
 
   for (const auto& p : channels_store_.data()) {
     const channel& chan = p.second;
@@ -117,5 +121,36 @@ void MainWindow::on_channel_link_clicked(const std::string& channel_id) {
     }
   } else {
     channels_stack_.set_visible_child(channel_id);
+  }
+}
+
+void MainWindow::on_channel_joined_signal(const Json::Value& payload) {
+  const std::string channel_id = payload["channel"]["id"].asString();
+  const boost::optional<channel> result = channels_store_.find(channel_id);
+  if (result) {
+    auto w = Gtk::manage(new ChannelWindow(api_client_, users_store_,
+                                           icon_loader_, result.get()));
+    w->channel_link_signal().connect(
+        sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
+    channels_stack_.add(*w, w->id(), w->name());
+    w->show();
+    channels_stack_.set_visible_child(*w);
+  } else {
+    std::cerr << "[MainWindow] on_channel_joined_signal: Unknown channel "
+              << channel_id << std::endl;
+  }
+}
+
+void MainWindow::on_channel_left_signal(const Json::Value& payload) {
+  const std::string channel_id(payload["channel"].asString());
+
+  Widget* widget = channels_stack_.get_child_by_name(channel_id);
+  if (widget == nullptr) {
+    std::cerr << "[MainWindow] on_channel_left_signal: Cannot find "
+                 "ChannelWindow with id="
+              << channel_id << std::endl;
+  } else {
+    channels_stack_.remove(*widget);
+    delete widget;
   }
 }

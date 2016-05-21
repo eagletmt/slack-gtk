@@ -2,7 +2,8 @@
 
 channels_store::channels_store(const Json::Value& json) {
   for (const Json::Value& c : json["channels"]) {
-    channels_.emplace(std::make_pair(c["id"].asString(), channel(c)));
+    const channel chan(c);
+    channels_.emplace(std::make_pair(chan.id, chan));
   }
 }
 
