@@ -10,6 +10,8 @@
 #include "message_entry.h"
 #include "users_store.h"
 
+class MessageRow;
+
 class ChannelWindow : public Gtk::Box {
  public:
   ChannelWindow(const api_client& api_client, const users_store& users_store,
@@ -20,10 +22,13 @@ class ChannelWindow : public Gtk::Box {
   sigc::signal<void, const std::string&> channel_link_signal();
 
   void on_message_signal(const Json::Value& payload);
+  MessageRow* append_message(const Json::Value& payload);
   void on_channels_history(const boost::optional<Json::Value>& result);
   void on_channel_link_clicked(const std::string& channel_id);
 
  private:
+  void send_notification(const MessageRow* row);
+
   Gtk::ScrolledWindow messages_scrolled_window_;
   Gtk::ListBox messages_list_box_;
   MessageEntry message_entry_;

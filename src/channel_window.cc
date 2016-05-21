@@ -1,5 +1,6 @@
 #include "channel_window.h"
 #include <gtkmm/scrollbar.h>
+#include <libnotify/notification.h>
 #include <iostream>
 #include "bottom_adjustment.h"
 #include "message_row.h"
@@ -44,12 +45,31 @@ const std::string& ChannelWindow::name() const {
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
+  MessageRow* row = append_message(payload);
+  send_notification(row);
+}
+
+MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
   auto row = Gtk::manage(
       new MessageRow(api_client_, icon_loader_, users_store_, payload));
   messages_list_box_.append(*row);
   row->channel_link_signal().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
   row->show();
+  return row;
+}
+
+void ChannelWindow::send_notification(const MessageRow* row) {
+  NotifyNotification* notification = notify_notification_new(
+      "slack-gtk", row->summary_for_notification().c_str(), nullptr);
+  notify_notification_set_timeout(notification, 5 * 1000);
+  notify_notification_set_urgency(notification, NOTIFY_URGENCY_LOW);
+
+  GError* error = nullptr;
+  if (!notify_notification_show(notification, &error)) {
+    std::cerr << "[ChannelWindow] send_notification: " << error->message
+              << std::endl;
+  }
 }
 
 void ChannelWindow::on_channels_history(
@@ -60,7 +80,7 @@ void ChannelWindow::on_channels_history(
       v.push_back(message);
     }
     for (auto it = v.crbegin(); it != v.crend(); ++it) {
-      on_message_signal(*it);
+      append_message(*it);
     }
   } else {
     std::cerr << "[channel " << name()

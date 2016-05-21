@@ -18,6 +18,8 @@ class MessageRow : public Gtk::ListBoxRow {
              const users_store& users_store, const Json::Value& payload);
   virtual ~MessageRow();
 
+  std::string summary_for_notification() const;
+
   sigc::signal<void, const std::string&> channel_link_signal();
 
  private:

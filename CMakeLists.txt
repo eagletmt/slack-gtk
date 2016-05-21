@@ -17,6 +17,11 @@ include_directories(${gtk_INCLUDE_DIRS})
 link_directories(${gtk_LIBRARY_DIRS})
 link_libraries(${gtk_LIBRARIES})
 
+pkg_check_modules(libnotify REQUIRED libnotify)
+include_directories(${libnotify_INCLUDE_DIRS})
+link_directories(${libnotify_LIBRARY_DIRS})
+link_libraries(${libnotify_LIBRARIES})
+
 link_libraries(pthread)
 
 add_definitions(-std=c++11 -Wall -W)

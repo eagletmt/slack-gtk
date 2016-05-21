@@ -1,5 +1,6 @@
 #include <glibmm/miscutils.h>
 #include <gtkmm/application.h>
+#include <libnotify/notify.h>
 #include <fstream>
 #include <iostream>
 #include "api_client.h"
@@ -24,7 +25,10 @@ int main(int argc, char* argv[]) {
     ofs << json;
   }
 
-  auto app = Gtk::Application::create(argc, argv, "cc.wanko.slack-gtk");
+  static const char app_name[] = "cc.wanko.slack-gtk";
+  notify_init(app_name);
+
+  auto app = Gtk::Application::create(argc, argv, app_name);
   MainWindow window(api_client, json);
 
   return app->run(window);

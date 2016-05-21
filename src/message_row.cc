@@ -253,3 +253,7 @@ bool MessageRow::on_activate_link(const Glib::ustring &uri) {
     return false;
   }
 }
+
+std::string MessageRow::summary_for_notification() const {
+  return user_label_.get_text() + ": " + message_label_.get_text();
+}

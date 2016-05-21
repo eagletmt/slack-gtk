@@ -5,6 +5,7 @@ Native desktop client for slack.com
 - jsoncpp
 - gtkmm 3
 - libsoup
+- libnotify
 
 ## Build
 ```sh
