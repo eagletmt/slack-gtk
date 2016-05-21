@@ -7,14 +7,13 @@
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
                              const users_store& users_store,
-                             icon_loader& icon_loader,
-                             const Json::Value& channel)
+                             icon_loader& icon_loader, const channel& chan)
     : messages_scrolled_window_(),
       messages_list_box_(),
-      message_entry_(api_client, channel["id"].asString()),
+      message_entry_(api_client, chan.id),
 
-      id_(channel["id"].asString()),
-      name_(channel["name"].asString()),
+      id_(chan.id),
+      name_(chan.name),
       api_client_(api_client),
       users_store_(users_store),
       icon_loader_(icon_loader) {

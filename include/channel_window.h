@@ -6,6 +6,7 @@
 #include <gtkmm/scrolledwindow.h>
 #include <json/json.h>
 #include "api_client.h"
+#include "channel.h"
 #include "icon_loader.h"
 #include "message_entry.h"
 #include "users_store.h"
@@ -15,7 +16,7 @@ class MessageRow;
 class ChannelWindow : public Gtk::Box {
  public:
   ChannelWindow(const api_client& api_client, const users_store& users_store,
-                icon_loader& icon_loader, const Json::Value& channel);
+                icon_loader& icon_loader, const channel& chan);
 
   const std::string& id() const;
   const std::string& name() const;

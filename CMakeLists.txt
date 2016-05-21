@@ -33,6 +33,7 @@ set(SOURCES
   src/api_client.cc
   src/bottom_adjustment.cc
   src/channel_window.cc
+  src/channels_store.cc
   src/icon_loader.cc
   src/main.cc
   src/main_window.cc

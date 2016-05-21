@@ -6,6 +6,7 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
     : box_(Gtk::ORIENTATION_HORIZONTAL),
       rtm_client_(json),
       users_store_(json),
+      channels_store_(json),
       // TODO: Use proper directory
       icon_loader_("icons") {
   add(box_);
@@ -28,12 +29,11 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
   rtm_client_.channel_marked_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_marked_signal));
 
-  for (const Json::Value& channel : json["channels"]) {
-    const std::string name = channel["name"].asString();
-    const bool is_member = channel["is_member"].asBool();
-    if (is_member) {
+  for (const auto& p : channels_store_.data()) {
+    const channel& chan = p.second;
+    if (chan.is_member) {
       auto w = Gtk::manage(
-          new ChannelWindow(api_client, users_store_, icon_loader_, channel));
+          new ChannelWindow(api_client, users_store_, icon_loader_, chan));
       w->channel_link_signal().connect(
           sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
       channels_stack_.add(*w, w->id(), w->name());

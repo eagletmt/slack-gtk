@@ -7,7 +7,7 @@
 
 class users_store {
  public:
-  users_store(const Json::Value& users);
+  users_store(const Json::Value& json);
 
   boost::optional<user> find(const std::string& user_id) const;
 
