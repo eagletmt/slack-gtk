@@ -105,6 +105,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                     << inviter_value << std::endl;
         }
       }
+    } else if (subtype == "channel_leave") {
+      // nothing special
     } else if (subtype == "bot_add") {
       // nothing special
     } else if (subtype == "bot_remove") {
