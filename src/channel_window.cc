@@ -65,7 +65,7 @@ MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
   auto row = Gtk::manage(new MessageRow(api_client_, icon_loader_, users_store_,
                                         channels_store_, payload));
   messages_list_box_.append(*row);
-  row->channel_link_signal().connect(
+  row->signal_channel_link_clicked().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
   row->show();
   return row;

@@ -23,7 +23,8 @@ class MessageRow : public Gtk::ListBoxRow {
 
   std::string summary_for_notification() const;
 
-  sigc::signal<void, const std::string&> channel_link_signal();
+  sigc::signal<void, const std::string&> signal_user_link_clicked();
+  sigc::signal<void, const std::string&> signal_channel_link_clicked();
 
  private:
   void load_user_icon(const std::string& url);
@@ -31,8 +32,6 @@ class MessageRow : public Gtk::ListBoxRow {
 
   void load_shared_file(const Json::Value& payload);
   void on_shared_file_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);
-
-  bool on_activate_link(const Glib::ustring& uri);
 
   Gtk::Box hbox_, vbox_, info_hbox_;
   Gtk::Image user_image_;
@@ -45,8 +44,6 @@ class MessageRow : public Gtk::ListBoxRow {
   icon_loader& icon_loader_;
   const users_store& users_store_;
   const channels_store& channels_store_;
-
-  sigc::signal<void, const std::string&> channel_link_signal_;
 };
 
 #endif
