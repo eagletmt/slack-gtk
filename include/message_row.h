@@ -10,6 +10,7 @@
 #include <sigc++/sigc++.h>
 #include "api_client.h"
 #include "channels_store.h"
+#include "emoji_loader.h"
 #include "icon_loader.h"
 #include "message_text_view.h"
 #include "users_store.h"
@@ -17,7 +18,7 @@
 class MessageRow : public Gtk::ListBoxRow {
  public:
   MessageRow(const api_client& api_client, icon_loader& icon_loader,
-             const users_store& users_store,
+             emoji_loader& emoji_loader, const users_store& users_store,
              const channels_store& channels_store, const Json::Value& payload);
   virtual ~MessageRow();
 

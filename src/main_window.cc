@@ -1,14 +1,17 @@
 #include "main_window.h"
 #include <iostream>
 
-MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
+MainWindow::MainWindow(const api_client& api_client,
+                       const std::string& emoji_directory,
+                       const Json::Value& json)
     : box_(Gtk::ORIENTATION_HORIZONTAL),
       api_client_(api_client),
       rtm_client_(json),
       users_store_(json),
       channels_store_(json),
       // TODO: Use proper directory
-      icon_loader_("icons") {
+      icon_loader_("icons"),
+      emoji_loader_(emoji_directory) {
   add(box_);
 
   box_.pack_start(channels_sidebar_, Gtk::PACK_SHRINK);
@@ -176,8 +179,9 @@ static std::string build_channel_title(const ChannelWindow& window) {
 }
 
 ChannelWindow* MainWindow::add_channel_window(const channel& chan) {
-  auto w = Gtk::manage(new ChannelWindow(api_client_, users_store_,
-                                         channels_store_, icon_loader_, chan));
+  auto w =
+      Gtk::manage(new ChannelWindow(api_client_, users_store_, channels_store_,
+                                    icon_loader_, emoji_loader_, chan));
   w->channel_link_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
   w->property_unread_count().signal_changed().connect(sigc::bind(

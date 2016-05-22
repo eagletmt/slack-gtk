@@ -3,8 +3,11 @@
 #include <regex>
 
 MessageTextView::MessageTextView(const users_store& users_store,
-                                 const channels_store& channels_store)
-    : users_store_(users_store), channels_store_(channels_store) {
+                                 const channels_store& channels_store,
+                                 emoji_loader& emoji_loader)
+    : users_store_(users_store),
+      channels_store_(channels_store),
+      emoji_loader_(emoji_loader) {
   signal_motion_notify_event().connect(
       sigc::mem_fun(*this, &MessageTextView::on_motion_notify_event));
   signal_event_after().connect(
@@ -106,15 +109,75 @@ Gtk::TextBuffer::iterator MessageTextView::insert_hyperlink(
   return iter;
 }
 
-static Gtk::TextBuffer::iterator insert_markdown_text(
+static void tokenize_emojis(
+    std::vector<std::pair<std::string, std::string>>& tokens) {
+  const std::regex emoji_re(":([a-zA-Z0-9_]+):");
+
+  for (auto it = tokens.begin(); it != tokens.end();) {
+    const std::string tag = it->first;
+    const std::string text = it->second;
+    std::sregex_iterator re_it(text.begin(), text.end(), emoji_re), re_end;
+    if (re_it == re_end) {
+      ++it;
+      continue;
+    }
+
+    std::size_t pos = 0;
+    it = tokens.erase(it);
+    for (; re_it != re_end; ++re_it) {
+      it = tokens.insert(
+          it, std::make_pair(tag, text.substr(pos, re_it->position() - pos)));
+      const std::string& emoji = (*re_it)[1].str();
+      std::string lower_emoji;
+      std::transform(emoji.begin(), emoji.end(),
+                     std::back_inserter(lower_emoji),
+                     [](char c) { return std::tolower(c); });
+      it = tokens.insert(it, std::make_pair("emoji_" + tag, lower_emoji));
+      pos = re_it->position() + re_it->length();
+    }
+    if (pos != text.size()) {
+      it = tokens.insert(it, std::make_pair(tag, text.substr(pos)));
+    }
+  }
+}
+
+Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
     Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
     const std::string& text, bool is_message) {
   // TODO: format markdown-like text
-  if (is_message) {
-    return buffer->insert(iter, text);
-  } else {
-    return buffer->insert_with_tag(iter, text, "info_message");
+  std::vector<std::pair<std::string, std::string>> tokens(
+      1, std::make_pair(is_message ? "" : "info_message", text));
+  tokenize_emojis(tokens);
+
+  for (const auto& tag_and_text : tokens) {
+    const std::string& tag = tag_and_text.first;
+    const std::string& text = tag_and_text.second;
+
+    if (text.empty()) {
+      continue;
+    }
+    if (tag.empty()) {
+      iter = buffer->insert(iter, text);
+    } else if (tag.compare(0, 6, "emoji_") == 0) {
+      Glib::RefPtr<Gdk::Pixbuf> emoji = emoji_loader_.find(text);
+      if (emoji) {
+        iter = buffer->insert_pixbuf(
+            iter, emoji->scale_simple(24, 24, Gdk::INTERP_BILINEAR));
+      } else {
+        std::cerr << "[MessageTextView] cannot find emoji " << text
+                  << std::endl;
+        const std::string fallback_tag = tag.substr(6);
+        if (fallback_tag.empty()) {
+          iter = buffer->insert(iter, ":" + text + ":");
+        } else {
+          iter = buffer->insert_with_tag(iter, ":" + text + ":", tag.substr(6));
+        }
+      }
+    } else {
+      iter = buffer->insert_with_tag(iter, text, tag);
+    }
   }
+  return iter;
 }
 
 void MessageTextView::set_text(const std::string& text, bool is_message) {

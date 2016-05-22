@@ -6,6 +6,7 @@
 #include <iostream>
 
 MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
+                       emoji_loader &emoji_loader,
                        const users_store &users_store,
                        const channels_store &channels_store,
                        const Json::Value &payload)
@@ -16,7 +17,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
-      message_text_view_(users_store, channels_store),
+      message_text_view_(users_store, channels_store, emoji_loader),
       file_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
 

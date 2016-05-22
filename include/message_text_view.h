@@ -3,12 +3,14 @@
 
 #include <gtkmm/textview.h>
 #include "channels_store.h"
+#include "emoji_loader.h"
 #include "users_store.h"
 
 class MessageTextView : public Gtk::TextView {
  public:
   MessageTextView(const users_store& users_store,
-                  const channels_store& channels_store);
+                  const channels_store& channels_store,
+                  emoji_loader& emoji_loader);
   ~MessageTextView() override;
 
   void set_text(const std::string& text, bool is_message);
@@ -21,6 +23,9 @@ class MessageTextView : public Gtk::TextView {
   Gtk::TextBuffer::iterator insert_hyperlink(
       Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
       const std::string& linker);
+  Gtk::TextBuffer::iterator insert_markdown_text(
+      Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
+      const std::string& text, bool is_message);
 
   bool on_motion_notify_event(GdkEventMotion* event);
   void on_event_after(GdkEvent* event);
@@ -29,6 +34,7 @@ class MessageTextView : public Gtk::TextView {
 
   const users_store& users_store_;
   const channels_store& channels_store_;
+  emoji_loader& emoji_loader_;
 
   sigc::signal<void, const std::string &> signal_user_link_clicked_,
       signal_channel_link_clicked_;

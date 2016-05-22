@@ -8,13 +8,15 @@
 #include "api_client.h"
 #include "channel_window.h"
 #include "channels_store.h"
+#include "emoji_loader.h"
 #include "icon_loader.h"
 #include "rtm_client.h"
 #include "users_store.h"
 
 class MainWindow : public Gtk::ApplicationWindow {
  public:
-  MainWindow(const api_client& api_client, const Json::Value& json);
+  MainWindow(const api_client& api_client, const std::string& emoji_directory,
+             const Json::Value& json);
   virtual ~MainWindow();
 
  private:
@@ -44,5 +46,6 @@ class MainWindow : public Gtk::ApplicationWindow {
   users_store users_store_;
   channels_store channels_store_;
   icon_loader icon_loader_;
+  emoji_loader emoji_loader_;
 };
 #endif

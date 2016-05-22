@@ -12,6 +12,12 @@ int main(int argc, char* argv[]) {
     std::cerr << "Set SLACK_GTK_TOKEN" << std::endl;
     return 1;
   }
+  const std::string emoji_directory = Glib::getenv("SLACK_GTK_EMOJI_DIRECTORY");
+  if (emoji_directory.empty()) {
+    std::cerr << "Set SLACK_GTK_EMOJI_DIRECTORY" << std::endl;
+    return 1;
+  }
+
   api_client api_client("https://slack.com/api", token);
   const boost::optional<Json::Value> result =
       api_client.post("rtm.start", std::map<std::string, std::string>());
@@ -29,7 +35,7 @@ int main(int argc, char* argv[]) {
   notify_init(app_name);
 
   auto app = Gtk::Application::create(argc, argv, app_name);
-  MainWindow window(api_client, json);
+  MainWindow window(api_client, emoji_directory, json);
 
   return app->run(window);
 }
