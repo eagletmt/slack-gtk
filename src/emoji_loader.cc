@@ -1,4 +1,5 @@
 #include "emoji_loader.h"
+#include <glibmm/fileutils.h>
 #include <json/json.h>
 #include <fstream>
 #include <iostream>
@@ -36,7 +37,16 @@ Glib::RefPtr<Gdk::Pixbuf> emoji_loader::find(const std::string& name) const {
   if (it == dict_.end()) {
     return Glib::RefPtr<Gdk::Pixbuf>();
   } else {
-    const std::string path = directory_ + "/img-google-64/" + it->second.image;
-    return Gdk::Pixbuf::create_from_file(path);
+    try {
+      const std::string path =
+          directory_ + "/img-google-64/" + it->second.image;
+      return Gdk::Pixbuf::create_from_file(path);
+    } catch (const Glib::FileError& e) {
+      if (e.code() == Glib::FileError::NO_SUCH_ENTITY) {
+        return Glib::RefPtr<Gdk::Pixbuf>();
+      } else {
+        throw e;
+      }
+    }
   }
 }
