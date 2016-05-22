@@ -27,6 +27,7 @@ class MainWindow : public Gtk::ApplicationWindow {
   void on_channel_left_signal(const Json::Value& payload);
 
   void on_channel_link_clicked(const std::string& channel_id);
+  void on_channel_added(Widget* widget);
 
   void append_message(const std::string& text);
 

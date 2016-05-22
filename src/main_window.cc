@@ -34,6 +34,8 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
   rtm_client_.channel_left_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_left_signal));
 
+  channels_stack_.signal_add().connect(
+      sigc::mem_fun(*this, &MainWindow::on_channel_added));
   for (const auto& p : channels_store_.data()) {
     const channel& chan = p.second;
     if (chan.is_member) {
@@ -152,5 +154,18 @@ void MainWindow::on_channel_left_signal(const Json::Value& payload) {
   } else {
     channels_stack_.remove(*widget);
     delete widget;
+  }
+}
+
+void MainWindow::on_channel_added(Widget*) {
+  std::map<std::string, Widget*> children;
+  for (Widget* widget : channels_stack_.get_children()) {
+    children.emplace(
+        std::make_pair(static_cast<ChannelWindow*>(widget)->name(), widget));
+  }
+  int position = 0;
+  for (auto p : children) {
+    channels_stack_.child_property_position(*p.second).set_value(position);
+    ++position;
   }
 }
