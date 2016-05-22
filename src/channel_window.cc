@@ -8,6 +8,7 @@
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
                              const users_store& users_store,
+                             const channels_store& channels_store,
                              icon_loader& icon_loader, const channel& chan)
     : Glib::ObjectBase(typeid(ChannelWindow)),
       Gtk::Box(),
@@ -20,6 +21,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
       name_(chan.name),
       api_client_(api_client),
       users_store_(users_store),
+      channels_store_(channels_store),
       icon_loader_(icon_loader) {
   set_orientation(Gtk::ORIENTATION_VERTICAL);
   pack_start(messages_scrolled_window_);
@@ -60,8 +62,8 @@ void ChannelWindow::on_channel_marked(const Json::Value& payload) {
 }
 
 MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
-  auto row = Gtk::manage(
-      new MessageRow(api_client_, icon_loader_, users_store_, payload));
+  auto row = Gtk::manage(new MessageRow(api_client_, icon_loader_, users_store_,
+                                        channels_store_, payload));
   messages_list_box_.append(*row);
   row->channel_link_signal().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));

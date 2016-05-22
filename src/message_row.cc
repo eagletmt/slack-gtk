@@ -8,6 +8,7 @@
 
 MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                        const users_store &users_store,
+                       const channels_store &channels_store,
                        const Json::Value &payload)
     : hbox_(Gtk::ORIENTATION_HORIZONTAL),
       vbox_(Gtk::ORIENTATION_VERTICAL),
@@ -22,7 +23,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
 
       api_client_(api_client),
       icon_loader_(icon_loader),
-      users_store_(users_store) {
+      users_store_(users_store),
+      channels_store_(channels_store) {
   add(hbox_);
 
   hbox_.pack_start(user_image_, Gtk::PACK_SHRINK);
@@ -214,10 +216,17 @@ std::string MessageRow::convert_link(const std::string &linker) const {
           link_name = link_id;
         }
       } break;
-      case '#':
-        // TODO: Resolve channel name
-        link_name = link_id;
-        break;
+      case '#': {
+        const boost::optional<channel> o_channel =
+            channels_store_.find(linker.substr(1, linker.size() - 1));
+        if (o_channel) {
+          link_name = "#" + o_channel.get().name;
+        } else {
+          std::cerr << "[MessageRow] cannot find linked channel " << linker
+                    << std::endl;
+          link_name = link_id;
+        }
+      } break;
       default:
         link_name = link_id;
         break;

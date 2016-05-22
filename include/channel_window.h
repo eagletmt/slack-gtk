@@ -8,6 +8,7 @@
 #include <json/json.h>
 #include "api_client.h"
 #include "channel.h"
+#include "channels_store.h"
 #include "icon_loader.h"
 #include "message_entry.h"
 #include "users_store.h"
@@ -17,7 +18,8 @@ class MessageRow;
 class ChannelWindow : public Gtk::Box {
  public:
   ChannelWindow(const api_client& api_client, const users_store& users_store,
-                icon_loader& icon_loader, const channel& chan);
+                const channels_store& channels_store, icon_loader& icon_loader,
+                const channel& chan);
 
   const std::string& id() const;
   const std::string& name() const;
@@ -48,6 +50,7 @@ class ChannelWindow : public Gtk::Box {
   std::string name_;
   api_client api_client_;
   const users_store& users_store_;
+  const channels_store& channels_store_;
   icon_loader& icon_loader_;
 
   sigc::signal<void, const std::string&> channel_link_signal_;

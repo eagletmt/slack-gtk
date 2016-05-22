@@ -9,13 +9,15 @@
 #include <libsoup/soup-session.h>
 #include <sigc++/sigc++.h>
 #include "api_client.h"
+#include "channels_store.h"
 #include "icon_loader.h"
 #include "users_store.h"
 
 class MessageRow : public Gtk::ListBoxRow {
  public:
   MessageRow(const api_client& api_client, icon_loader& icon_loader,
-             const users_store& users_store, const Json::Value& payload);
+             const users_store& users_store,
+             const channels_store& channels_store, const Json::Value& payload);
   virtual ~MessageRow();
 
   std::string summary_for_notification() const;
@@ -45,6 +47,7 @@ class MessageRow : public Gtk::ListBoxRow {
   api_client api_client_;
   icon_loader& icon_loader_;
   const users_store& users_store_;
+  const channels_store& channels_store_;
 
   sigc::signal<void, const std::string&> channel_link_signal_;
 };
