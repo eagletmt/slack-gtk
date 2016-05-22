@@ -12,14 +12,21 @@ MessageEntry::~MessageEntry() {
 void MessageEntry::on_activate() {
   const Glib::ustring text = get_text();
   set_text("");
-  std::cout << "Post to " << channel_id_ << ": " << text << std::endl;
   std::map<std::string, std::string> params;
   params["channel"] = channel_id_;
   params["text"] = text.raw();
   params["as_user"] = "true";
   params["parse"] = "full";
-  auto result = api_client_.post("chat.postMessage", params);
+  api_client_.queue_post("chat.postMessage", params,
+                         std::bind(&MessageEntry::post_message_finished, this,
+                                   std::placeholders::_1));
+}
+
+void MessageEntry::post_message_finished(
+    const boost::optional<Json::Value>& result) const {
   if (result) {
     std::cout << result.get() << std::endl;
+  } else {
+    std::cerr << "[MessageEntry] failed to post message" << std::endl;
   }
 }

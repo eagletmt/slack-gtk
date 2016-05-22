@@ -13,6 +13,8 @@ class MessageEntry : public Gtk::Entry {
   virtual void on_activate() override;
 
  private:
+  void post_message_finished(const boost::optional<Json::Value>& result) const;
+
   api_client api_client_;
   std::string channel_id_;
 };
