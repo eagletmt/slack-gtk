@@ -1,6 +1,5 @@
 #include "main_window.h"
 #include <iostream>
-#include "channel_window.h"
 
 MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
     : box_(Gtk::ORIENTATION_HORIZONTAL),
@@ -39,11 +38,7 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
   for (const auto& p : channels_store_.data()) {
     const channel& chan = p.second;
     if (chan.is_member) {
-      auto w = Gtk::manage(
-          new ChannelWindow(api_client, users_store_, icon_loader_, chan));
-      w->channel_link_signal().connect(
-          sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
-      channels_stack_.add(*w, w->id(), w->name());
+      add_channel_window(chan);
     }
   }
 
@@ -130,12 +125,7 @@ void MainWindow::on_channel_joined_signal(const Json::Value& payload) {
   const std::string channel_id = payload["channel"]["id"].asString();
   const boost::optional<channel> result = channels_store_.find(channel_id);
   if (result) {
-    auto w = Gtk::manage(new ChannelWindow(api_client_, users_store_,
-                                           icon_loader_, result.get()));
-    w->channel_link_signal().connect(
-        sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
-    channels_stack_.add(*w, w->id(), w->name());
-    w->show();
+    auto w = add_channel_window(result.get());
     channels_stack_.set_visible_child(*w);
   } else {
     std::cerr << "[MainWindow] on_channel_joined_signal: Unknown channel "
@@ -168,4 +158,38 @@ void MainWindow::on_channel_added(Widget*) {
     channels_stack_.child_property_position(*p.second).set_value(position);
     ++position;
   }
+}
+
+static std::string build_channel_title(const ChannelWindow& window) {
+  std::ostringstream oss;
+  oss << window.name() << " (" << window.unread_count() << ")";
+  return oss.str();
+}
+
+ChannelWindow* MainWindow::add_channel_window(const channel& chan) {
+  auto w = Gtk::manage(
+      new ChannelWindow(api_client_, users_store_, icon_loader_, chan));
+  w->channel_link_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
+  w->property_unread_count().signal_changed().connect(sigc::bind(
+      sigc::mem_fun(*this, &MainWindow::on_channel_unread_count_changed),
+      chan.id));
+  channels_stack_.add(*w, w->id(), build_channel_title(*w));
+  return w;
+}
+
+void MainWindow::on_channel_unread_count_changed(
+    const std::string& channel_id) {
+  Widget* widget = channels_stack_.get_child_by_name(channel_id);
+  if (widget == nullptr) {
+    std::cerr
+        << "[MainWindow] on_channel_unread_count_changed: unknown channel_id="
+        << channel_id << std::endl;
+    return;
+  }
+
+  ChannelWindow* window = static_cast<decltype(window)>(widget);
+
+  channels_stack_.child_property_title(*window).set_value(
+      build_channel_title(*window));
 }

@@ -8,9 +8,12 @@
 ChannelWindow::ChannelWindow(const api_client& api_client,
                              const users_store& users_store,
                              icon_loader& icon_loader, const channel& chan)
-    : messages_scrolled_window_(),
+    : Glib::ObjectBase(typeid(ChannelWindow)),
+      Gtk::Box(),
+      messages_scrolled_window_(),
       messages_list_box_(),
       message_entry_(api_client, chan.id),
+      unread_count_(*this, "unread-count", chan.unread_count),
 
       id_(chan.id),
       name_(chan.name),
@@ -45,6 +48,7 @@ const std::string& ChannelWindow::name() const {
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
   MessageRow* row = append_message(payload);
+  unread_count_.set_value(unread_count() + 1);
   send_notification(row);
 }
 
@@ -94,4 +98,12 @@ sigc::signal<void, const std::string&> ChannelWindow::channel_link_signal() {
 
 void ChannelWindow::on_channel_link_clicked(const std::string& channel_id) {
   channel_link_signal_.emit(channel_id);
+}
+
+Glib::PropertyProxy<int> ChannelWindow::property_unread_count() {
+  return unread_count_.get_proxy();
+}
+
+int ChannelWindow::unread_count() const {
+  return unread_count_.get_value();
 }

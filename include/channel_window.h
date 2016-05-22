@@ -1,6 +1,7 @@
 #ifndef SLACK_GTK_CHANNEL_WINDOW_H
 #define SLACK_GTK_CHANNEL_WINDOW_H
 
+#include <glibmm/property.h>
 #include <gtkmm/box.h>
 #include <gtkmm/listbox.h>
 #include <gtkmm/scrolledwindow.h>
@@ -22,6 +23,9 @@ class ChannelWindow : public Gtk::Box {
   const std::string& name() const;
   sigc::signal<void, const std::string&> channel_link_signal();
 
+  Glib::PropertyProxy<int> property_unread_count();
+  int unread_count() const;
+
   void on_message_signal(const Json::Value& payload);
   MessageRow* append_message(const Json::Value& payload);
   void on_channels_history(const boost::optional<Json::Value>& result);
@@ -33,6 +37,8 @@ class ChannelWindow : public Gtk::Box {
   Gtk::ScrolledWindow messages_scrolled_window_;
   Gtk::ListBox messages_list_box_;
   MessageEntry message_entry_;
+
+  Glib::Property<int> unread_count_;
 
   std::string id_;
   std::string name_;

@@ -6,6 +6,7 @@
 #include <gtkmm/stack.h>
 #include <gtkmm/stacksidebar.h>
 #include "api_client.h"
+#include "channel_window.h"
 #include "channels_store.h"
 #include "icon_loader.h"
 #include "rtm_client.h"
@@ -28,8 +29,10 @@ class MainWindow : public Gtk::ApplicationWindow {
 
   void on_channel_link_clicked(const std::string& channel_id);
   void on_channel_added(Widget* widget);
+  void on_channel_unread_count_changed(const std::string& channel_id);
 
   void append_message(const std::string& text);
+  ChannelWindow* add_channel_window(const channel& chan);
 
   Gtk::Box box_;
   Gtk::StackSidebar channels_sidebar_;
