@@ -109,36 +109,39 @@ Gtk::TextBuffer::iterator MessageTextView::insert_hyperlink(
   return iter;
 }
 
-static void tokenize_emojis(
-    std::vector<std::pair<std::string, std::string>>& tokens) {
+static std::vector<std::pair<std::string, std::string>> tokenize_emojis(
+    const std::vector<std::pair<std::string, std::string>>& tokens) {
   const std::regex emoji_re(":([a-zA-Z0-9_]+):");
 
-  for (auto it = tokens.begin(); it != tokens.end();) {
-    const std::string tag = it->first;
-    const std::string text = it->second;
+  std::vector<std::pair<std::string, std::string>> ret;
+
+  for (const auto& tag_and_text : tokens) {
+    const std::string& tag = tag_and_text.first;
+    const std::string& text = tag_and_text.second;
     std::sregex_iterator re_it(text.begin(), text.end(), emoji_re), re_end;
     if (re_it == re_end) {
-      ++it;
+      ret.push_back(tag_and_text);
       continue;
     }
 
     std::size_t pos = 0;
-    it = tokens.erase(it);
     for (; re_it != re_end; ++re_it) {
-      it = tokens.insert(
-          it, std::make_pair(tag, text.substr(pos, re_it->position() - pos)));
+      ret.emplace_back(
+          std::make_pair(tag, text.substr(pos, re_it->position() - pos)));
       const std::string& emoji = (*re_it)[1].str();
       std::string lower_emoji;
       std::transform(emoji.begin(), emoji.end(),
                      std::back_inserter(lower_emoji),
                      [](char c) { return std::tolower(c); });
-      it = tokens.insert(it, std::make_pair("emoji_" + tag, lower_emoji));
+      ret.emplace_back(std::make_pair("emoji_" + tag, lower_emoji));
       pos = re_it->position() + re_it->length();
     }
     if (pos != text.size()) {
-      it = tokens.insert(it, std::make_pair(tag, text.substr(pos)));
+      ret.emplace_back(std::make_pair(tag, text.substr(pos)));
     }
   }
+
+  return ret;
 }
 
 Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
@@ -147,12 +150,11 @@ Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
   // TODO: format markdown-like text
   std::vector<std::pair<std::string, std::string>> tokens(
       1, std::make_pair(is_message ? "" : "info_message", text));
-  tokenize_emojis(tokens);
+  tokens = tokenize_emojis(tokens);
 
   for (const auto& tag_and_text : tokens) {
     const std::string& tag = tag_and_text.first;
     const std::string& text = tag_and_text.second;
-
     if (text.empty()) {
       continue;
     }
