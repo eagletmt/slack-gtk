@@ -22,6 +22,7 @@ MessageEntry::MessageEntry(const api_client& api_client,
   }
   completion->set_model(list_store);
   completion->set_text_column(completion_columns_.short_name);
+  completion->set_match_func(sigc::mem_fun(*this, &MessageEntry::match_func));
 }
 
 MessageEntry::~MessageEntry() {
@@ -47,4 +48,28 @@ void MessageEntry::post_message_finished(
   } else {
     std::cerr << "[MessageEntry] failed to post message" << std::endl;
   }
+}
+
+bool MessageEntry::match_func(
+    const Glib::ustring& text,
+    const Gtk::TreeModel::const_iterator& iter) const {
+  const int current_pos = get_position();
+  if (current_pos == 0) {
+    return false;
+  }
+
+  Gtk::TreeRow row = *iter;
+  const Glib::ustring short_name =
+      row.get_value(completion_columns_.short_name);
+  int prefix_pos = current_pos - 1;
+  while (prefix_pos >= 0 && text[prefix_pos] != ' ') {
+    --prefix_pos;
+  }
+  ++prefix_pos;
+  const Glib::ustring word_prefix =
+      text.substr(prefix_pos, current_pos - prefix_pos);
+  if (word_prefix.empty()) {
+    return false;
+  }
+  return short_name.compare(0, word_prefix.size(), word_prefix) == 0;
 }

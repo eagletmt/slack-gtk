@@ -17,6 +17,8 @@ class MessageEntry : public Gtk::Entry {
 
  private:
   void post_message_finished(const boost::optional<Json::Value>& result) const;
+  bool match_func(const Glib::ustring& text,
+                  const Gtk::TreeModel::const_iterator& iter) const;
 
   const MessageCompletionRecord completion_columns_;
 
