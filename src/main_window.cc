@@ -35,6 +35,8 @@ MainWindow::MainWindow(const api_client& api_client, const Json::Value& json)
 
   channels_stack_.signal_add().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_added));
+  channels_stack_.property_visible_child().signal_changed().connect(
+      sigc::mem_fun(*this, &MainWindow::on_visible_channel_changed));
   for (const auto& p : channels_store_.data()) {
     const channel& chan = p.second;
     if (chan.is_member) {
@@ -192,4 +194,11 @@ void MainWindow::on_channel_unread_count_changed(
 
   channels_stack_.child_property_title(*window).set_value(
       build_channel_title(*window));
+}
+
+void MainWindow::on_visible_channel_changed() {
+  Widget* widget = channels_stack_.get_visible_child();
+  if (widget != nullptr) {
+    static_cast<ChannelWindow*>(widget)->on_channel_visible();
+  }
 }

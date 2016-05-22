@@ -30,6 +30,7 @@ class MainWindow : public Gtk::ApplicationWindow {
   void on_channel_link_clicked(const std::string& channel_id);
   void on_channel_added(Widget* widget);
   void on_channel_unread_count_changed(const std::string& channel_id);
+  void on_visible_channel_changed();
 
   void append_message(const std::string& text);
   ChannelWindow* add_channel_window(const channel& chan);

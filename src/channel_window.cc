@@ -1,6 +1,7 @@
 #include "channel_window.h"
 #include <gtkmm/scrollbar.h>
 #include <libnotify/notification.h>
+#include <chrono>
 #include <iostream>
 #include "bottom_adjustment.h"
 #include "message_row.h"
@@ -108,4 +109,31 @@ Glib::PropertyProxy<int> ChannelWindow::property_unread_count() {
 
 int ChannelWindow::unread_count() const {
   return unread_count_.get_value();
+}
+
+void ChannelWindow::on_channel_visible() {
+  const std::uint64_t ts =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
+  mark_as_read(std::to_string(ts));
+}
+
+static void channels_mark_finished(const boost::optional<Json::Value>& result) {
+  if (result) {
+    if (!result.get()["ok"].asBool()) {
+      std::cerr << "[ChannelWindow] channels_mark_finished: failed: "
+                << result.get() << std::endl;
+    }
+  } else {
+    std::cerr << "[ChannelWindow] channels_mark_finished: failed" << std::endl;
+  }
+}
+
+void ChannelWindow::mark_as_read(const std::string& ts) {
+  unread_count_.set_value(0);
+  std::map<std::string, std::string> params;
+  params["channel"] = id();
+  params["ts"] = ts;
+  api_client_.queue_post("channels.mark", params, channels_mark_finished);
 }
