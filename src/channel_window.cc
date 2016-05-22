@@ -15,7 +15,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
       Gtk::Box(),
       messages_scrolled_window_(),
       messages_list_box_(),
-      message_entry_(api_client, chan.id),
+      message_entry_(api_client, emoji_loader, chan.id),
       unread_count_(*this, "unread-count", chan.unread_count),
 
       id_(chan.id),

@@ -3,10 +3,13 @@
 
 #include <gtkmm/entry.h>
 #include "api_client.h"
+#include "emoji_loader.h"
+#include "message_completion_record.h"
 
 class MessageEntry : public Gtk::Entry {
  public:
-  MessageEntry(const api_client& api_client, const std::string& channel_id);
+  MessageEntry(const api_client& api_client, emoji_loader& emoji_loader,
+               const std::string& channel_id);
   virtual ~MessageEntry();
 
  protected:
@@ -15,7 +18,10 @@ class MessageEntry : public Gtk::Entry {
  private:
   void post_message_finished(const boost::optional<Json::Value>& result) const;
 
+  const MessageCompletionRecord completion_columns_;
+
   api_client api_client_;
+  emoji_loader& emoji_loader_;
   std::string channel_id_;
 };
 

@@ -1,9 +1,27 @@
 #include "message_entry.h"
+#include <gtkmm/liststore.h>
 #include <iostream>
 
 MessageEntry::MessageEntry(const api_client& api_client,
+                           emoji_loader& emoji_loader,
                            const std::string& channel_id)
-    : api_client_(api_client), channel_id_(channel_id) {
+    : completion_columns_(),
+
+      api_client_(api_client),
+      emoji_loader_(emoji_loader),
+      channel_id_(channel_id) {
+  Glib::RefPtr<Gtk::EntryCompletion> completion =
+      Gtk::EntryCompletion::create();
+  set_completion(completion);
+
+  Glib::RefPtr<Gtk::ListStore> list_store =
+      Gtk::ListStore::create(completion_columns_);
+  for (const auto& p : emoji_loader_.data()) {
+    Gtk::TreeRow row = (*list_store->append());
+    row[completion_columns_.short_name] = ":" + p.first + ":";
+  }
+  completion->set_model(list_store);
+  completion->set_text_column(completion_columns_.short_name);
 }
 
 MessageEntry::~MessageEntry() {

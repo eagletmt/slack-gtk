@@ -10,6 +10,9 @@ class emoji_loader {
   emoji_loader(const std::string& directory);
 
   Glib::RefPtr<Gdk::Pixbuf> find(const std::string& name) const;
+  const inline std::map<std::string, emoji_data>& data() const {
+    return dict_;
+  }
 
  private:
   std::string directory_;
