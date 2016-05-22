@@ -48,7 +48,9 @@ const std::string& ChannelWindow::name() const {
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
   MessageRow* row = append_message(payload);
-  unread_count_.set_value(unread_count() + 1);
+  if (!is_visible() || !get_child_visible()) {
+    unread_count_.set_value(unread_count() + 1);
+  }
   send_notification(row);
 }
 
