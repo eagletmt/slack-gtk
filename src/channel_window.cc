@@ -33,6 +33,8 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
   messages_scrolled_window_.set_vadjustment(
       BottomAdjustment::create(messages_scrolled_window_.get_vadjustment()));
 
+  messages_list_box_.set_selection_mode(Gtk::SELECTION_NONE);
+
   show_all_children();
 
   std::map<std::string, std::string> params;

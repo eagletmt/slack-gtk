@@ -5,8 +5,6 @@
 MessageTextView::MessageTextView(const users_store& users_store,
                                  const channels_store& channels_store)
     : users_store_(users_store), channels_store_(channels_store) {
-  set_editable(false);
-
   signal_motion_notify_event().connect(
       sigc::mem_fun(*this, &MessageTextView::on_motion_notify_event));
   signal_event_after().connect(
