@@ -4,7 +4,6 @@
 #include <gtkmm/stock.h>
 #include <libsoup/soup-uri.h>
 #include <iostream>
-#include <regex>
 
 MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                        const users_store &users_store,
@@ -17,7 +16,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
-      message_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
+      message_text_view_(users_store, channels_store),
       file_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
 
@@ -44,9 +43,6 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
   const double ts = std::stof(payload["ts"].asString());
   const Glib::DateTime timestamp = Glib::DateTime::create_now_local(gint64(ts));
   timestamp_label_.set_text(timestamp.format("%F %R"));
-
-  message_label_.set_line_wrap(true);
-  message_label_.set_line_wrap_mode(Pango::WRAP_WORD_CHAR);
 
   const Json::Value subtype_value = payload["subtype"];
   std::string text = payload["text"].asString();
@@ -121,11 +117,11 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                 << payload << std::endl;
     }
   }
-  vbox_.pack_end(message_label_);
-  message_label_.signal_activate_link().connect(
-      sigc::mem_fun(*this, &MessageRow::on_activate_link), false);
-
-  message_label_.set_markup(convert_links(text, is_message));
+  vbox_.pack_end(message_text_view_);
+  message_text_view_.set_text(text, is_message);
+  // TODO: recover
+  // message_label_.signal_activate_link().connect(
+  //     sigc::mem_fun(*this, &MessageRow::on_activate_link), false);
 
   show_all_children();
 }
@@ -140,104 +136,6 @@ void MessageRow::load_user_icon(const std::string &icon_url) {
 
 void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
-}
-
-std::string MessageRow::convert_links(const std::string &slack_markup,
-                                      bool is_message) const {
-  std::regex markup_re("<([^<>]*)>");
-  std::sregex_iterator re_it(slack_markup.begin(), slack_markup.end(),
-                             markup_re),
-      re_end;
-  if (re_it == re_end) {
-    return slack_markup;
-  }
-
-  std::string pango_markup;
-  std::size_t pos = 0;
-  static const std::string non_message_color = "#aaa";
-
-  for (; re_it != re_end; ++re_it) {
-    if (!is_message) {
-      pango_markup.append("<span color=\"")
-          .append(non_message_color)
-          .append("\">");
-    }
-    pango_markup.append(slack_markup, pos, re_it->position() - pos);
-    if (!is_message) {
-      pango_markup.append("</span>");
-    }
-    pango_markup.append(convert_link((*re_it)[1].str()));
-    pos = re_it->position() + re_it->length();
-  }
-  if (!is_message) {
-    pango_markup.append("<span color=\"")
-        .append(non_message_color)
-        .append("\">");
-  }
-  pango_markup.append(slack_markup, pos, slack_markup.size() - pos);
-  if (!is_message) {
-    pango_markup.append("</span>");
-  }
-
-  return pango_markup;
-}
-
-// https://api.slack.com/docs/formatting
-std::string MessageRow::convert_link(const std::string &linker) const {
-  std::regex url_re("^(.+)\\|(.+)$");
-  std::smatch match;
-  std::string link_id, link_name;
-
-  if (std::regex_match(linker, match, url_re)) {
-    const std::string &left = match[1];
-    const std::string &right = match[2];
-    link_id = left;
-    switch (left[0]) {
-      case '@':
-      case '#':
-        link_name = std::string(left, 0, 1).append(right);
-        break;
-      default:
-        link_id = left;
-        link_name = right;
-        break;
-    }
-  } else {
-    link_id = linker;
-    switch (linker[0]) {
-      case '@': {
-        const boost::optional<user> o_user =
-            users_store_.find(linker.substr(1, linker.size() - 1));
-        if (o_user) {
-          link_name = "@" + o_user.get().name;
-        } else {
-          std::cerr << "[MessageRow] cannot find linked user " << linker
-                    << std::endl;
-          link_name = link_id;
-        }
-      } break;
-      case '#': {
-        const boost::optional<channel> o_channel =
-            channels_store_.find(linker.substr(1, linker.size() - 1));
-        if (o_channel) {
-          link_name = "#" + o_channel.get().name;
-        } else {
-          std::cerr << "[MessageRow] cannot find linked channel " << linker
-                    << std::endl;
-          link_name = link_id;
-        }
-      } break;
-      default:
-        link_name = link_id;
-        break;
-    }
-  }
-
-  return std::string("<a href=\"")
-      .append(link_id)
-      .append("\">")
-      .append(link_name)
-      .append("</a>");
 }
 
 void MessageRow::load_shared_file(const Json::Value &payload) {
@@ -274,5 +172,5 @@ bool MessageRow::on_activate_link(const Glib::ustring &uri) {
 }
 
 std::string MessageRow::summary_for_notification() const {
-  return user_label_.get_text() + ": " + message_label_.get_text();
+  return user_label_.get_text() + ": " + message_text_view_.get_text();
 }

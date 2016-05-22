@@ -11,6 +11,7 @@
 #include "api_client.h"
 #include "channels_store.h"
 #include "icon_loader.h"
+#include "message_text_view.h"
 #include "users_store.h"
 
 class MessageRow : public Gtk::ListBoxRow {
@@ -33,15 +34,11 @@ class MessageRow : public Gtk::ListBoxRow {
 
   bool on_activate_link(const Glib::ustring& uri);
 
-  std::string convert_links(const std::string& slack_markup,
-                            bool is_message) const;
-  std::string convert_link(const std::string& linker) const;
-
   Gtk::Box hbox_, vbox_, info_hbox_;
   Gtk::Image user_image_;
   Gtk::Label user_label_;
   Gtk::Label timestamp_label_;
-  Gtk::Label message_label_;
+  MessageTextView message_text_view_;
   Gtk::Image file_image_;
 
   api_client api_client_;

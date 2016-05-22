@@ -39,6 +39,7 @@ set(SOURCES
   src/main_window.cc
   src/message_entry.cc
   src/message_row.cc
+  src/message_text_view.cc
   src/rtm_client.cc
   src/users_store.cc
   )
