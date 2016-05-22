@@ -74,10 +74,11 @@ void MainWindow::on_pref_change_signal(const Json::Value& payload) {
 }
 
 void MainWindow::on_message_signal(const Json::Value& payload) {
-  const std::string id = payload["channel"].asString();
-  Widget* widget = channels_stack_.get_child_by_name(id);
+  const std::string channel_id = payload["channel"].asString();
+  Widget* widget = channels_stack_.get_child_by_name(channel_id);
   if (widget == nullptr) {
-    std::cerr << "Unknown channel: id=" << id << std::endl;
+    std::cerr << "[MainWindow] on_message_signal: unknown channel: id="
+              << channel_id << std::endl;
     std::cerr << payload << std::endl;
   } else {
     static_cast<ChannelWindow*>(widget)->on_message_signal(payload);
@@ -85,9 +86,15 @@ void MainWindow::on_message_signal(const Json::Value& payload) {
 }
 
 void MainWindow::on_channel_marked_signal(const Json::Value& payload) {
-  std::ostringstream oss;
-  oss << payload;
-  append_message(oss.str());
+  const std::string channel_id = payload["channel"].asString();
+  Widget* widget = channels_stack_.get_child_by_name(channel_id);
+  if (widget == nullptr) {
+    std::cerr << "[MainWindow] on_channel_marked_signal: unknown channel: id="
+              << channel_id << std::endl;
+    std::cerr << payload << std::endl;
+  } else {
+    static_cast<ChannelWindow*>(widget)->on_channel_marked(payload);
+  }
 }
 
 void MainWindow::append_message(const std::string& text) {

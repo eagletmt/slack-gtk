@@ -55,6 +55,10 @@ void ChannelWindow::on_message_signal(const Json::Value& payload) {
   send_notification(row);
 }
 
+void ChannelWindow::on_channel_marked(const Json::Value& payload) {
+  unread_count_.set_value(payload["unread_count"].asInt());
+}
+
 MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
   auto row = Gtk::manage(
       new MessageRow(api_client_, icon_loader_, users_store_, payload));
@@ -131,7 +135,6 @@ static void channels_mark_finished(const boost::optional<Json::Value>& result) {
 }
 
 void ChannelWindow::mark_as_read(const std::string& ts) {
-  unread_count_.set_value(0);
   std::map<std::string, std::string> params;
   params["channel"] = id();
   params["ts"] = ts;
