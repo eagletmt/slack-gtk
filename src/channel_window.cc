@@ -84,6 +84,17 @@ MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
   return row;
 }
 
+MessageRow* ChannelWindow::prepend_message(const Json::Value& payload) {
+  auto row =
+      Gtk::manage(new MessageRow(api_client_, icon_loader_, emoji_loader_,
+                                 users_store_, channels_store_, payload));
+  messages_list_box_.prepend(*row);
+  row->signal_channel_link_clicked().connect(
+      sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
+  row->show();
+  return row;
+}
+
 void ChannelWindow::send_notification(const MessageRow* row) {
   NotifyNotification* notification = notify_notification_new(
       "slack-gtk", row->summary_for_notification().c_str(), nullptr);
@@ -100,12 +111,8 @@ void ChannelWindow::send_notification(const MessageRow* row) {
 void ChannelWindow::on_channels_history(
     const boost::optional<Json::Value>& result) {
   if (result) {
-    std::vector<Json::Value> v;
     for (const Json::Value& message : result.get()["messages"]) {
-      v.push_back(message);
-    }
-    for (auto it = v.crbegin(); it != v.crend(); ++it) {
-      append_message(*it);
+      prepend_message(message);
     }
     history_loaded_ = true;
   } else {

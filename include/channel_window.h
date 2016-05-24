@@ -35,6 +35,7 @@ class ChannelWindow : public Gtk::Box {
   void on_message_signal(const Json::Value& payload);
   void on_channel_marked(const Json::Value& payload);
   MessageRow* append_message(const Json::Value& payload);
+  MessageRow* prepend_message(const Json::Value& payload);
   void on_channels_history(const boost::optional<Json::Value>& result);
   void on_channel_link_clicked(const std::string& channel_id);
   void on_channel_visible();
