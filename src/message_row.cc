@@ -65,7 +65,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
     const std::string subtype = subtype_value.asString();
     if (subtype == "bot_message") {
       is_message = true;
-      user_label_.set_text(payload["username"].asString() + " [BOT]");
+      std::string username = payload["username"].asString();
       const Json::Value image64 = payload["icons"]["image_64"];
       const Json::Value image48 = payload["icons"]["image_48"];
       const Json::Value bot_id = payload["bot_id"];
@@ -76,7 +76,11 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       } else if (bot_id.isString()) {
         const boost::optional<user> ou = users_store_.find(bot_id.asString());
         if (ou) {
-          load_user_icon(ou.get().icons.image_72);
+          const user &u = ou.get();
+          load_user_icon(u.icons.image_72);
+          if (username.empty()) {
+            username = u.name;
+          }
         } else {
           std::cerr << "[MessageRow] cannot find bot user  " << bot_id
                     << std::endl;
@@ -87,6 +91,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
             "img/avatars/ava_0002-48.png";
         load_user_icon(default_icon_url);
       }
+      user_label_.set_text(username);
     } else if (subtype == "channel_join") {
       const Json::Value inviter_value = payload["inviter"];
       if (inviter_value.isString()) {
