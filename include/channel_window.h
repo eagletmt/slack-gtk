@@ -30,6 +30,7 @@ class ChannelWindow : public Gtk::Box {
   int unread_count() const;
 
   void mark_as_read(const std::string& ts);
+  void load_history();
 
   void on_message_signal(const Json::Value& payload);
   void on_channel_marked(const Json::Value& payload);
@@ -46,6 +47,7 @@ class ChannelWindow : public Gtk::Box {
   MessageEntry message_entry_;
 
   Glib::Property<int> unread_count_;
+  bool history_loaded_;
 
   std::string id_;
   std::string name_;

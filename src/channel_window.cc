@@ -17,6 +17,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
       messages_list_box_(),
       message_entry_(api_client, chan.id),
       unread_count_(*this, "unread-count", chan.unread_count),
+      history_loaded_(false),
 
       id_(chan.id),
       name_(chan.name),
@@ -38,12 +39,6 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
   messages_list_box_.set_selection_mode(Gtk::SELECTION_NONE);
 
   show_all_children();
-
-  std::map<std::string, std::string> params;
-  params.emplace(std::make_pair("channel", id()));
-  api_client_.queue_post("channels.history", params,
-                         std::bind(&ChannelWindow::on_channels_history, this,
-                                   std::placeholders::_1));
 }
 
 const std::string& ChannelWindow::id() const {
@@ -51,6 +46,19 @@ const std::string& ChannelWindow::id() const {
 }
 const std::string& ChannelWindow::name() const {
   return name_;
+}
+
+void ChannelWindow::load_history() {
+  if (history_loaded_) {
+    return;
+  }
+
+  // TODO: Show loading indicator
+  std::map<std::string, std::string> params;
+  params.emplace(std::make_pair("channel", id()));
+  api_client_.queue_post("channels.history", params,
+                         std::bind(&ChannelWindow::on_channels_history, this,
+                                   std::placeholders::_1));
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
@@ -99,6 +107,7 @@ void ChannelWindow::on_channels_history(
     for (auto it = v.crbegin(); it != v.crend(); ++it) {
       append_message(*it);
     }
+    history_loaded_ = true;
   } else {
     std::cerr << "[channel " << name()
               << "] failed to load history from channels.history API"
@@ -123,6 +132,7 @@ int ChannelWindow::unread_count() const {
 }
 
 void ChannelWindow::on_channel_visible() {
+  load_history();
   const std::uint64_t ts =
       std::chrono::duration_cast<std::chrono::seconds>(
           std::chrono::system_clock::now().time_since_epoch())
