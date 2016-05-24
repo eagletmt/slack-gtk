@@ -4,6 +4,7 @@
 #include <gtkmm/stock.h>
 #include <libsoup/soup-uri.h>
 #include <iostream>
+#include "attachments_view.h"
 
 MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                        emoji_loader &emoji_loader,
@@ -117,6 +118,11 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       std::cout << "Unhandled subtype " << subtype << ": \n"
                 << payload << std::endl;
     }
+  }
+  if (payload["attachments"].isArray()) {
+    auto attachments_view = Gtk::manage(new AttachmentsView(
+        users_store, channels_store, emoji_loader, payload["attachments"]));
+    vbox_.pack_end(*attachments_view);
   }
   vbox_.pack_end(message_text_view_);
   message_text_view_.set_text(text, is_message);
