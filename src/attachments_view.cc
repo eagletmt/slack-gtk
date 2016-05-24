@@ -5,6 +5,8 @@ AttachmentsView::AttachmentsView(const users_store& users_store,
                                  const channels_store& channels_store,
                                  emoji_loader& emoji_loader,
                                  const Json::Value& attachments) {
+  set_orientation(Gtk::ORIENTATION_VERTICAL);
+
   for (const Json::Value& attachment : attachments) {
     auto view = Gtk::manage(
         new MessageTextView(users_store, channels_store, emoji_loader));
