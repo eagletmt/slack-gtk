@@ -30,6 +30,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
 
   hbox_.pack_start(user_image_, Gtk::PACK_SHRINK);
   hbox_.pack_end(vbox_);
+  user_image_.set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_START);
 
   vbox_.pack_start(info_hbox_, Gtk::PACK_SHRINK);
 
