@@ -144,6 +144,25 @@ static std::vector<std::pair<std::string, std::string>> tokenize_emojis(
   return ret;
 }
 
+static void replace_all(std::string& text, const std::string& sub,
+                        const std::string& replacement) {
+  for (std::string::size_type pos = text.find(sub); pos != std::string::npos;
+       pos = text.find(sub, pos + 1)) {
+    text.replace(pos, sub.size(), replacement);
+  }
+}
+
+static void replace_entity_references(
+    std::vector<std::pair<std::string, std::string>>& tokens) {
+  for (auto& tag_and_text : tokens) {
+    std::string& text = tag_and_text.second;
+    // https://api.slack.com/docs/formatting#how_to_escape_characters
+    replace_all(text, "&amp;", "&");
+    replace_all(text, "&lt;", "<");
+    replace_all(text, "&gt;", ">");
+  }
+}
+
 Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
     Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
     const std::string& text, bool is_message) {
@@ -151,6 +170,7 @@ Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
   std::vector<std::pair<std::string, std::string>> tokens(
       1, std::make_pair(is_message ? "" : "info_message", text));
   tokens = tokenize_emojis(tokens);
+  replace_entity_references(tokens);
 
   for (const auto& tag_and_text : tokens) {
     const std::string& tag = tag_and_text.first;
