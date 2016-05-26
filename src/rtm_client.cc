@@ -112,6 +112,8 @@ void rtm_client::handle_payload(const char *payload, size_t size) {
         channel_joined_signal_.emit(root);
       } else if (type == "channel_left") {
         channel_left_signal_.emit(root);
+      } else if (type == "user_typing") {
+        user_typing_signal_.emit(root);
       } else {
         std::cerr << "rtm_client: unknown message type=" << type << std::endl;
         std::cerr << root << std::endl;
@@ -148,4 +150,7 @@ rtm_client::message_signal_type rtm_client::channel_joined_signal() {
 }
 rtm_client::message_signal_type rtm_client::channel_left_signal() {
   return channel_left_signal_;
+}
+rtm_client::message_signal_type rtm_client::user_typing_signal() {
+  return user_typing_signal_;
 }

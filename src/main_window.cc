@@ -35,6 +35,8 @@ MainWindow::MainWindow(const api_client& api_client,
       sigc::mem_fun(*this, &MainWindow::on_channel_joined_signal));
   rtm_client_.channel_left_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_left_signal));
+  rtm_client_.user_typing_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_user_typing_signal));
 
   channels_stack_.signal_add().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_added));
@@ -156,6 +158,25 @@ void MainWindow::on_channel_left_signal(const Json::Value& payload) {
   } else {
     channels_stack_.remove(*widget);
     delete widget;
+  }
+}
+
+void MainWindow::on_user_typing_signal(const Json::Value& payload) {
+  auto oc = channels_store_.find(payload["channel"].asString());
+  auto ou = users_store_.find(payload["user"].asString());
+  if (oc && ou) {
+    const channel& c = oc.get();
+    const user& u = ou.get();
+    std::cout << u.name << " is typing on #" << c.name << std::endl;
+  } else {
+    if (!oc) {
+      std::cerr << "[MainWindow] on_user_typing_signal: cannot find channel "
+                << payload["channel"] << std::endl;
+    }
+    if (!ou) {
+      std::cerr << "[MainWindow] on_user_typing_signal: cannot find user "
+                << payload["user"] << std::endl;
+    }
   }
 }
 
