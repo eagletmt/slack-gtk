@@ -141,8 +141,9 @@ void api_client::on_shared_file_loaded(SoupMessage* message) {
       for (auto it = equal_range.first; it != equal_range.second; ++it) {
         (it->second)(loader->get_pixbuf());
       }
-    } catch (Gdk::PixbufError& err) {
-      std::cerr << uri << ": " << err.what() << std::endl;
+    } catch (const Gdk::PixbufError& e) {
+      std::cerr << "[api_client] cannot load shared file from " << uri << " ("
+                << e.code() << ") " << e.what() << std::endl;
     }
   }
 

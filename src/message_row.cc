@@ -118,8 +118,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
     } else if (subtype == "bot_remove") {
       // nothing special
     } else if (subtype == "file_share") {
-      vbox_.pack_end(file_image_, Gtk::PACK_SHRINK);
-      load_shared_file(payload);
+      // vbox_.pack_end(file_image_, Gtk::PACK_SHRINK);
+      // load_shared_file(payload);
     } else {
       std::cout << "Unhandled subtype " << subtype << ": \n"
                 << payload << std::endl;

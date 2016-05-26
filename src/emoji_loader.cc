@@ -37,9 +37,8 @@ Glib::RefPtr<Gdk::Pixbuf> emoji_loader::find(const std::string& name) const {
   if (it == dict_.end()) {
     return Glib::RefPtr<Gdk::Pixbuf>();
   } else {
+    const std::string path = directory_ + "/img-google-64/" + it->second.image;
     try {
-      const std::string path =
-          directory_ + "/img-google-64/" + it->second.image;
       return Gdk::Pixbuf::create_from_file(path);
     } catch (const Glib::FileError& e) {
       if (e.code() == Glib::FileError::NO_SUCH_ENTITY) {
@@ -47,6 +46,10 @@ Glib::RefPtr<Gdk::Pixbuf> emoji_loader::find(const std::string& name) const {
       } else {
         throw e;
       }
+    } catch (const Gdk::PixbufError& e) {
+      std::cerr << "[emoji_loader] cannot load emoji from " << path << " ("
+                << e.code() << ") " << e.what() << std::endl;
+      return Glib::RefPtr<Gdk::Pixbuf>();
     }
   }
 }

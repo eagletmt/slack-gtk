@@ -54,7 +54,13 @@ Glib::RefPtr<Gdk::Pixbuf> icon_loader::load_from_cache(
   const std::string cache_path = build_cache_path(cache_directory_, url);
   if (Glib::file_test(cache_path,
                       Glib::FILE_TEST_IS_REGULAR | Glib::FILE_TEST_EXISTS)) {
-    return Gdk::Pixbuf::create_from_file(cache_path);
+    try {
+      return Gdk::Pixbuf::create_from_file(cache_path);
+    } catch (const Gdk::PixbufError &e) {
+      std::cerr << "[icon_loader] cannot load icon from " << cache_path << " ("
+                << e.code() << ") " << e.what() << std::endl;
+      return Glib::RefPtr<Gdk::Pixbuf>();
+    }
   } else {
     return Glib::RefPtr<Gdk::Pixbuf>();
   }
@@ -90,9 +96,15 @@ void icon_loader::on_load(SoupMessage *message) {
         reinterpret_cast<const guint8 *>(message->response_body->data),
         message->response_body->length);
     loader->close();
-    Glib::RefPtr<Gdk::Pixbuf> pixbuf = loader->get_pixbuf();
-    for (auto it = equal_range.first; it != equal_range.second; ++it) {
-      (it->second)(loader->get_pixbuf());
+
+    try {
+      Glib::RefPtr<Gdk::Pixbuf> pixbuf = loader->get_pixbuf();
+      for (auto it = equal_range.first; it != equal_range.second; ++it) {
+        (it->second)(pixbuf);
+      }
+    } catch (const Gdk::PixbufError &e) {
+      std::cerr << "[icon_loader] cannot load icon from " << uri << " ("
+                << e.code() << ") " << e.what() << std::endl;
     }
   }
 
