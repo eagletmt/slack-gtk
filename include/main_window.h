@@ -2,9 +2,7 @@
 #define SLACK_GTK_MAIN_WINDOW_H
 
 #include <gtkmm/applicationwindow.h>
-#include <gtkmm/box.h>
 #include <gtkmm/stack.h>
-#include <gtkmm/stacksidebar.h>
 #include "api_client.h"
 #include "channel_window.h"
 #include "channels_store.h"
@@ -38,8 +36,6 @@ class MainWindow : public Gtk::ApplicationWindow {
   void append_message(const std::string& text);
   ChannelWindow* add_channel_window(const channel& chan);
 
-  Gtk::Box box_;
-  Gtk::StackSidebar channels_sidebar_;
   Gtk::Stack channels_stack_;
 
   api_client api_client_;

@@ -1,7 +1,6 @@
 #ifndef SLACK_GTK_MESSAGE_ROW_H
 #define SLACK_GTK_MESSAGE_ROW_H
 
-#include <gtkmm/box.h>
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/listboxrow.h>
@@ -32,10 +31,8 @@ class MessageRow : public Gtk::ListBoxRow {
   void load_user_icon(const std::string& url);
   void on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);
 
-  Gtk::Box hbox_, vbox_, info_hbox_;
   Gtk::Image user_image_;
   Gtk::Label user_label_;
-  Gtk::Label timestamp_label_;
   MessageTextView message_text_view_;
 
   std::string ts_;

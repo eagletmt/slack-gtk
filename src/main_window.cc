@@ -1,23 +1,25 @@
 #include "main_window.h"
+#include <gtkmm/stacksidebar.h>
 #include <iostream>
 
 MainWindow::MainWindow(const api_client& api_client,
                        const std::string& emoji_directory,
                        const Json::Value& json)
-    : box_(Gtk::ORIENTATION_HORIZONTAL),
-      api_client_(api_client),
+    : api_client_(api_client),
       rtm_client_(json),
       users_store_(json),
       channels_store_(json),
       // TODO: Use proper directory
       icon_loader_("icons"),
       emoji_loader_(emoji_directory) {
-  add(box_);
+  Gtk::Box* box = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
+  add(*box);
 
-  box_.pack_start(channels_sidebar_, Gtk::PACK_SHRINK);
-  box_.pack_start(channels_stack_, Gtk::PACK_EXPAND_WIDGET);
+  Gtk::StackSidebar* channels_sidebar = Gtk::manage(new Gtk::StackSidebar());
+  box->pack_start(*channels_sidebar, Gtk::PACK_SHRINK);
+  box->pack_start(channels_stack_, Gtk::PACK_EXPAND_WIDGET);
 
-  channels_sidebar_.set_stack(channels_stack_);
+  channels_sidebar->set_stack(channels_stack_);
 
   rtm_client_.hello_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_hello_signal));

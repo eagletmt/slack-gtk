@@ -11,13 +11,9 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
                        const users_store &users_store,
                        const channels_store &channels_store,
                        const Json::Value &payload)
-    : hbox_(Gtk::ORIENTATION_HORIZONTAL),
-      vbox_(Gtk::ORIENTATION_VERTICAL),
-      info_hbox_(Gtk::ORIENTATION_HORIZONTAL),
-      user_image_(Gtk::Stock::MISSING_IMAGE,
+    : user_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
-      timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
       message_text_view_(users_store, channels_store, emoji_loader),
 
       ts_(payload["ts"].asString()),
@@ -26,16 +22,21 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       icon_loader_(icon_loader),
       users_store_(users_store),
       channels_store_(channels_store) {
-  add(hbox_);
+  Gtk::Box *hbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
+  add(*hbox);
 
-  hbox_.pack_start(user_image_, Gtk::PACK_SHRINK);
-  hbox_.pack_end(vbox_);
+  Gtk::Box *vbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_VERTICAL));
+  hbox->pack_start(user_image_, Gtk::PACK_SHRINK);
+  hbox->pack_end(*vbox);
   user_image_.set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_START);
 
-  vbox_.pack_start(info_hbox_, Gtk::PACK_SHRINK);
+  Gtk::Box *info_hbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
+  vbox->pack_start(*info_hbox, Gtk::PACK_SHRINK);
 
-  info_hbox_.pack_start(user_label_, Gtk::PACK_SHRINK);
-  info_hbox_.pack_end(timestamp_label_, Gtk::PACK_SHRINK);
+  Gtk::Label *timestamp_label =
+      Gtk::manage(new Gtk::Label("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER));
+  info_hbox->pack_start(user_label_, Gtk::PACK_SHRINK);
+  info_hbox->pack_end(*timestamp_label, Gtk::PACK_SHRINK);
 
   Pango::AttrList attrs;
   Pango::Attribute weight =
@@ -45,7 +46,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
 
   const Glib::DateTime timestamp =
       Glib::DateTime::create_now_local(gint64(std::stof(ts())));
-  timestamp_label_.set_text(timestamp.format("%F %R"));
+  timestamp_label->set_text(timestamp.format("%F %R"));
 
   const Json::Value subtype_value = payload["subtype"];
   std::string text = payload["text"].asString();
@@ -127,9 +128,9 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
   if (payload["attachments"].isArray()) {
     auto attachments_view = Gtk::manage(new AttachmentsView(
         users_store, channels_store, emoji_loader, payload["attachments"]));
-    vbox_.pack_end(*attachments_view);
+    vbox->pack_end(*attachments_view);
   }
-  vbox_.pack_end(message_text_view_);
+  vbox->pack_end(message_text_view_);
   message_text_view_.set_text(text, is_message);
 
   show_all_children();

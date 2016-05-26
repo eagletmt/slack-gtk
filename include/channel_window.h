@@ -4,14 +4,12 @@
 #include <glibmm/property.h>
 #include <gtkmm/box.h>
 #include <gtkmm/listbox.h>
-#include <gtkmm/scrolledwindow.h>
 #include <json/json.h>
 #include "api_client.h"
 #include "channel.h"
 #include "channels_store.h"
 #include "emoji_loader.h"
 #include "icon_loader.h"
-#include "message_entry.h"
 #include "users_store.h"
 
 class MessageRow;
@@ -43,9 +41,7 @@ class ChannelWindow : public Gtk::Box {
  private:
   void send_notification(const MessageRow* row);
 
-  Gtk::ScrolledWindow messages_scrolled_window_;
   Gtk::ListBox messages_list_box_;
-  MessageEntry message_entry_;
 
   Glib::Property<int> unread_count_;
   bool history_loaded_;

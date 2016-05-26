@@ -1,9 +1,11 @@
 #include "channel_window.h"
 #include <gtkmm/scrollbar.h>
+#include <gtkmm/scrolledwindow.h>
 #include <libnotify/notification.h>
 #include <chrono>
 #include <iostream>
 #include "bottom_adjustment.h"
+#include "message_entry.h"
 #include "message_row.h"
 
 ChannelWindow::ChannelWindow(const api_client& api_client,
@@ -13,9 +15,7 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
                              emoji_loader& emoji_loader, const channel& chan)
     : Glib::ObjectBase(typeid(ChannelWindow)),
       Gtk::Box(),
-      messages_scrolled_window_(),
       messages_list_box_(),
-      message_entry_(api_client, chan.id),
       unread_count_(*this, "unread-count", chan.unread_count),
       history_loaded_(false),
 
@@ -27,14 +27,17 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
       icon_loader_(icon_loader),
       emoji_loader_(emoji_loader) {
   set_orientation(Gtk::ORIENTATION_VERTICAL);
-  pack_start(messages_scrolled_window_);
-  pack_end(message_entry_, Gtk::PACK_SHRINK);
+  Gtk::ScrolledWindow* messages_scrolled_window =
+      Gtk::manage(new Gtk::ScrolledWindow());
+  pack_start(*messages_scrolled_window);
+  pack_end(*Gtk::manage(new MessageEntry(api_client_, chan.id)),
+           Gtk::PACK_SHRINK);
 
-  messages_scrolled_window_.add(messages_list_box_);
-  messages_scrolled_window_.set_policy(Gtk::POLICY_NEVER,
+  messages_scrolled_window->add(messages_list_box_);
+  messages_scrolled_window->set_policy(Gtk::POLICY_NEVER,
                                        Gtk::POLICY_AUTOMATIC);
-  messages_scrolled_window_.set_vadjustment(
-      BottomAdjustment::create(messages_scrolled_window_.get_vadjustment()));
+  messages_scrolled_window->set_vadjustment(
+      BottomAdjustment::create(messages_scrolled_window->get_vadjustment()));
 
   messages_list_box_.set_selection_mode(Gtk::SELECTION_NONE);
 
