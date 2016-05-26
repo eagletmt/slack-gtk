@@ -19,8 +19,6 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
       timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
       message_text_view_(users_store, channels_store, emoji_loader),
-      file_image_(Gtk::Stock::MISSING_IMAGE,
-                  Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
 
       api_client_(api_client),
       icon_loader_(icon_loader),
@@ -118,8 +116,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
     } else if (subtype == "bot_remove") {
       // nothing special
     } else if (subtype == "file_share") {
-      vbox_.pack_end(file_image_, Gtk::PACK_SHRINK);
-      load_shared_file(payload);
+      // nothing special
     } else {
       std::cout << "Unhandled subtype " << subtype << ": \n"
                 << payload << std::endl;
@@ -146,23 +143,6 @@ void MessageRow::load_user_icon(const std::string &icon_url) {
 
 void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
   user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
-}
-
-void MessageRow::load_shared_file(const Json::Value &payload) {
-  // TODO: Animated GIF support
-  const Json::Value thumb_url = payload["file"]["thumb_360"];
-  if (thumb_url.isString()) {
-    api_client_.get_shared_file(thumb_url.asString(),
-                                std::bind(&MessageRow::on_shared_file_loaded,
-                                          this, std::placeholders::_1));
-  } else {
-    std::cerr << "[MessageRow] Invalid file_share payload " << payload
-              << std::endl;
-  }
-}
-
-void MessageRow::on_shared_file_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
-  file_image_.set(pixbuf);
 }
 
 sigc::signal<void, const std::string &>

@@ -24,11 +24,6 @@ class api_client {
                   const std::map<std::string, std::string>& params,
                   const post_callback_type& callback);
 
-  typedef std::function<void(Glib::RefPtr<Gdk::Pixbuf>)>
-      get_shared_file_callback_type;
-  void get_shared_file(const std::string& url,
-                       const get_shared_file_callback_type& callback);
-
  private:
   void setup();
   SoupMessage* build_message(
@@ -37,17 +32,11 @@ class api_client {
   static void queue_callback(SoupSession*, SoupMessage* message,
                              gpointer user_data);
   void on_queue_callback(SoupMessage* message);
-  static void get_shared_file_callback(SoupSession* session,
-                                       SoupMessage* message,
-                                       gpointer user_data);
-  void on_shared_file_loaded(SoupMessage* message);
 
   SoupSession* session_;
   const std::string endpoint_;
   const std::string token_;
   std::map<std::intptr_t, post_callback_type> callback_registry_;
-  std::multimap<std::string, get_shared_file_callback_type>
-      get_shared_file_callbacks_;
 };
 
 #endif
