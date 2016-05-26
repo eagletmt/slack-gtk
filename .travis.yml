@@ -8,7 +8,7 @@ git:
   submodules: false
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y gtkmm-3.0-dev libsoup2.4-dev libjsoncpp-dev libboost-dev
+  - sudo apt-get install -y gtkmm-3.0-dev libsoup2.4-dev libjsoncpp-dev libboost-dev libnotify-dev
 before_script:
   - mkdir build
   - cd build
