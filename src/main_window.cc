@@ -68,9 +68,14 @@ void MainWindow::on_reconnect_url_signal(const Json::Value& payload) {
 
 void MainWindow::on_presence_change_signal(const Json::Value& payload) {
   std::ostringstream oss;
-  oss << "User " << payload["user"] << " changed presence to "
-      << payload["presence"];
-  append_message(oss.str());
+  auto ou = users_store_.find(payload["user"].asString());
+  if (ou) {
+    oss << ou.get().name << " changed presence to " << payload["presence"];
+    append_message(oss.str());
+  } else {
+    std::cerr << "[MainWindow] on_pref_change_signal: cannot find user "
+              << payload["user"] << std::endl;
+  }
 }
 void MainWindow::on_pref_change_signal(const Json::Value& payload) {
   std::ostringstream oss;
