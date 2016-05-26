@@ -20,6 +20,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       timestamp_label_("", Gtk::ALIGN_END, Gtk::ALIGN_CENTER),
       message_text_view_(users_store, channels_store, emoji_loader),
 
+      ts_(payload["ts"].asString()),
+
       api_client_(api_client),
       icon_loader_(icon_loader),
       users_store_(users_store),
@@ -41,8 +43,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
   attrs.insert(weight);
   user_label_.set_attributes(attrs);
 
-  const double ts = std::stof(payload["ts"].asString());
-  const Glib::DateTime timestamp = Glib::DateTime::create_now_local(gint64(ts));
+  const Glib::DateTime timestamp =
+      Glib::DateTime::create_now_local(gint64(std::stof(ts())));
   timestamp_label_.set_text(timestamp.format("%F %R"));
 
   const Json::Value subtype_value = payload["subtype"];
@@ -156,4 +158,8 @@ sigc::signal<void, const std::string &> MessageRow::signal_user_link_clicked() {
 
 std::string MessageRow::summary_for_notification() const {
   return user_label_.get_text() + ": " + message_text_view_.get_text();
+}
+
+const std::string &MessageRow::ts() const {
+  return ts_;
 }

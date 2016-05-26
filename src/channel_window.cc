@@ -56,6 +56,11 @@ void ChannelWindow::load_history() {
   // TODO: Show loading indicator
   std::map<std::string, std::string> params;
   params.emplace(std::make_pair("channel", id()));
+  const MessageRow* row =
+      static_cast<decltype(row)>(messages_list_box_.get_row_at_index(0));
+  if (row != nullptr) {
+    params["latest"] = row->ts();
+  }
   api_client_.queue_post("channels.history", params,
                          std::bind(&ChannelWindow::on_channels_history, this,
                                    std::placeholders::_1));

@@ -23,6 +23,7 @@ class MessageRow : public Gtk::ListBoxRow {
   virtual ~MessageRow();
 
   std::string summary_for_notification() const;
+  const std::string& ts() const;
 
   sigc::signal<void, const std::string&> signal_user_link_clicked();
   sigc::signal<void, const std::string&> signal_channel_link_clicked();
@@ -36,6 +37,8 @@ class MessageRow : public Gtk::ListBoxRow {
   Gtk::Label user_label_;
   Gtk::Label timestamp_label_;
   MessageTextView message_text_view_;
+
+  std::string ts_;
 
   api_client api_client_;
   icon_loader& icon_loader_;
