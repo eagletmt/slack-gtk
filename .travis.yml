@@ -1,0 +1,15 @@
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+  - gcc
+  - clang
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y gtkmm-3.0-dev libsoup2.4-dev libjsoncpp-dev libboost-dev
+before_script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+script:
+  - make
