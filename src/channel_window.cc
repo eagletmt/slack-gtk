@@ -103,9 +103,10 @@ MessageRow* ChannelWindow::prepend_message(const Json::Value& payload) {
   return row;
 }
 
-void ChannelWindow::send_notification(const MessageRow* row) {
+void ChannelWindow::send_notification(const MessageRow* row) const {
+  const std::string title = "slack-gtk #" + name();
   NotifyNotification* notification = notify_notification_new(
-      "slack-gtk", row->summary_for_notification().c_str(), nullptr);
+      title.c_str(), row->summary_for_notification().c_str(), nullptr);
   notify_notification_set_timeout(notification, 5 * 1000);
   notify_notification_set_urgency(notification, NOTIFY_URGENCY_LOW);
 

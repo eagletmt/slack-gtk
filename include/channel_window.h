@@ -39,7 +39,7 @@ class ChannelWindow : public Gtk::Box {
   void on_channel_visible();
 
  private:
-  void send_notification(const MessageRow* row);
+  void send_notification(const MessageRow* row) const;
 
   Gtk::ListBox messages_list_box_;
 
