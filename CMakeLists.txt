@@ -2,7 +2,7 @@ project(slack-gtk CXX)
 cmake_minimum_required(VERSION 3.4)
 
 include(FindPkgConfig)
-pkg_check_modules(libsoup REQUIRED libsoup-2.4)
+pkg_check_modules(libsoup REQUIRED libsoup-2.4>=2.49.91)
 include_directories(${libsoup_INCLUDE_DIRS})
 link_directories(${libsoup_LIBRARY_DIRS})
 link_libraries(${libsoup_LIBRARIES})
