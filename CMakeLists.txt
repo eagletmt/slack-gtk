@@ -7,7 +7,7 @@ include_directories(${libsoup_INCLUDE_DIRS})
 link_directories(${libsoup_LIBRARY_DIRS})
 link_libraries(${libsoup_LIBRARIES})
 
-pkg_check_modules(jsoncpp REQUIRED jsoncpp)
+pkg_check_modules(jsoncpp REQUIRED jsoncpp>=1.0.0)
 include_directories(${jsoncpp_INCLUDE_DIRS})
 link_directories(${jsoncpp_LIBRARY_DIRS})
 link_libraries(${jsoncpp_LIBRARIES})
