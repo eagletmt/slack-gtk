@@ -12,9 +12,12 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
                              const users_store& users_store,
                              const channels_store& channels_store,
                              icon_loader& icon_loader,
-                             emoji_loader& emoji_loader, const channel& chan)
+                             emoji_loader& emoji_loader,
+                             Glib::RefPtr<Gio::Settings> settings,
+                             const channel& chan)
     : Glib::ObjectBase(typeid(ChannelWindow)),
       Gtk::Box(),
+      settings_(settings),
       messages_list_box_(),
       unread_count_(*this, "unread-count", chan.unread_count),
       history_loaded_(false),
@@ -107,7 +110,8 @@ void ChannelWindow::send_notification(const MessageRow* row) const {
   const std::string title = "slack-gtk #" + name();
   NotifyNotification* notification = notify_notification_new(
       title.c_str(), row->summary_for_notification().c_str(), nullptr);
-  notify_notification_set_timeout(notification, 5 * 1000);
+  notify_notification_set_timeout(notification,
+                                  settings_->get_uint("notification-timeout"));
   notify_notification_set_urgency(notification, NOTIFY_URGENCY_LOW);
 
   GError* error = nullptr;

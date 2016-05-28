@@ -5,7 +5,8 @@
 MainWindow::MainWindow(const api_client& api_client,
                        const std::string& emoji_directory,
                        const Json::Value& json)
-    : api_client_(api_client),
+    : settings_(Gio::Settings::create("cc.wanko.slack-gtk")),
+      api_client_(api_client),
       rtm_client_(json),
       users_store_(json),
       channels_store_(json),
@@ -207,9 +208,9 @@ static std::string build_channel_title(const ChannelWindow& window) {
 }
 
 ChannelWindow* MainWindow::add_channel_window(const channel& chan) {
-  auto w =
-      Gtk::manage(new ChannelWindow(api_client_, users_store_, channels_store_,
-                                    icon_loader_, emoji_loader_, chan));
+  auto w = Gtk::manage(new ChannelWindow(api_client_, users_store_,
+                                         channels_store_, icon_loader_,
+                                         emoji_loader_, settings_, chan));
   w->channel_link_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
   w->property_unread_count().signal_changed().connect(sigc::bind(

@@ -1,6 +1,7 @@
 #ifndef SLACK_GTK_CHANNEL_WINDOW_H
 #define SLACK_GTK_CHANNEL_WINDOW_H
 
+#include <giomm/settings.h>
 #include <glibmm/property.h>
 #include <gtkmm/box.h>
 #include <gtkmm/listbox.h>
@@ -18,7 +19,8 @@ class ChannelWindow : public Gtk::Box {
  public:
   ChannelWindow(const api_client& api_client, const users_store& users_store,
                 const channels_store& channels_store, icon_loader& icon_loader,
-                emoji_loader& emoji_loader, const channel& chan);
+                emoji_loader& emoji_loader,
+                Glib::RefPtr<Gio::Settings> settings, const channel& chan);
 
   const std::string& id() const;
   const std::string& name() const;
@@ -41,6 +43,7 @@ class ChannelWindow : public Gtk::Box {
  private:
   void send_notification(const MessageRow* row) const;
 
+  Glib::RefPtr<Gio::Settings> settings_;
   Gtk::ListBox messages_list_box_;
 
   Glib::Property<int> unread_count_;

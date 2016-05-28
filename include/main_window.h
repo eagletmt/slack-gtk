@@ -1,6 +1,7 @@
 #ifndef SLACK_GTK_MAIN_WINDOW_H
 #define SLACK_GTK_MAIN_WINDOW_H
 
+#include <giomm/settings.h>
 #include <gtkmm/applicationwindow.h>
 #include <gtkmm/stack.h>
 #include "api_client.h"
@@ -37,6 +38,7 @@ class MainWindow : public Gtk::ApplicationWindow {
   ChannelWindow* add_channel_window(const channel& chan);
 
   Gtk::Stack channels_stack_;
+  Glib::RefPtr<Gio::Settings> settings_;
 
   api_client api_client_;
   rtm_client rtm_client_;

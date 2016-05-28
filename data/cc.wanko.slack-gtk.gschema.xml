@@ -1,0 +1,8 @@
+<schemalist>
+  <schema id="cc.wanko.slack-gtk" path="/cc/wanko/slack-gtk/">
+    <key name="notification-timeout" type="u">
+      <default>5000</default>
+      <summary>Notification timeout</summary>
+    </key>
+  </schema>
+</schemalist>

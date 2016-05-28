@@ -48,3 +48,25 @@ set(SOURCES
 add_executable(slack-gtk ${SOURCES})
 
 install(PROGRAMS slack-gtk DESTINATION bin)
+
+# gsettings
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  pkg_get_variable(glib_compile_schemas gio-2.0 glib_compile_schemas)
+  set(gschema_source "${CMAKE_CURRENT_SOURCE_DIR}/data/cc.wanko.slack-gtk.gschema.xml")
+  set(gschema_copy "schemas/cc.wanko.slack-gtk.gschema.xml")
+  set(gschema_compiled "schemas/gschemas.compiled")
+  add_custom_command(
+    OUTPUT "${gschema_copy}"
+    COMMAND mkdir -p schemas
+    COMMAND cp "${gschema_source}" "${gschema_copy}"
+    COMMENT "Copying gschema"
+    DEPENDS "${gschema_source}"
+  )
+  add_custom_command(
+    OUTPUT "${gschema_compiled}"
+    COMMAND ${glib_compile_schemas} schemas
+    COMMENT "Compiling gschema"
+    DEPENDS "${gschema_copy}"
+  )
+  add_custom_target(compile-gschema ALL DEPENDS "${gschema_compiled}")
+endif()
