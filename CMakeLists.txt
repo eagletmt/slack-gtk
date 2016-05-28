@@ -12,7 +12,7 @@ include_directories(${jsoncpp_INCLUDE_DIRS})
 link_directories(${jsoncpp_LIBRARY_DIRS})
 link_libraries(${jsoncpp_LIBRARIES})
 
-pkg_check_modules(gtk REQUIRED gtkmm-3.0)
+pkg_check_modules(gtk REQUIRED gtkmm-3.0>=3.16)
 include_directories(${gtk_INCLUDE_DIRS})
 link_directories(${gtk_LIBRARY_DIRS})
 link_libraries(${gtk_LIBRARIES})
