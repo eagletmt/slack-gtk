@@ -4,5 +4,9 @@
       <default>5000</default>
       <summary>Notification timeout</summary>
     </key>
+    <key name="dpi" type="d">
+      <default>96</default>
+      <summary>DPI</summary>
+    </key>
   </schema>
 </schemalist>

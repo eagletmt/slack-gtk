@@ -22,4 +22,5 @@ make
 ## Configuration
 ```sh
 gsettings set cc.wanko.slack-gtk notification-timeout 10000
+gsettings set cc.wanko.slack-gtk dpi 133
 ```

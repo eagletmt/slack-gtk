@@ -22,6 +22,8 @@ MainWindow::MainWindow(const api_client& api_client,
 
   channels_sidebar->set_stack(channels_stack_);
 
+  get_screen()->set_resolution(settings_->get_double("dpi"));
+
   rtm_client_.hello_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_hello_signal));
   rtm_client_.reconnect_url_signal().connect(
