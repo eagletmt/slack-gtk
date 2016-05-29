@@ -1,4 +1,6 @@
 # slack-gtk
+[![Build Status](https://travis-ci.org/eagletmt/slack-gtk.svg?branch=master)](https://travis-ci.org/eagletmt/slack-gtk)
+
 Native desktop client for slack.com
 
 ## Dependencies
