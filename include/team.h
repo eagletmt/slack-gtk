@@ -1,17 +1,15 @@
 #ifndef SLACK_GTK_TEAM_H
 #define SLACK_GTK_TEAM_H
 
+#include <json/json.h>
 #include <memory>
-#include "api_client.h"
-#include "channels_store.h"
-#include "channels_store.h"
-#include "emoji_loader.h"
-#include "icon_loader.h"
-#include "rtm_client.h"
-#include "users_store.h"
 
 class api_client;
 class rtm_client;
+class users_store;
+class channels_store;
+class icon_loader;
+class emoji_loader;
 
 class team {
  public:

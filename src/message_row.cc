@@ -5,6 +5,8 @@
 #include <libsoup/soup-uri.h>
 #include <iostream>
 #include "attachments_view.h"
+#include "icon_loader.h"
+#include "users_store.h"
 
 MessageRow::MessageRow(team &team, const Json::Value &payload)
     : user_image_(Gtk::Stock::MISSING_IMAGE,

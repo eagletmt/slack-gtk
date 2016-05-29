@@ -1,6 +1,10 @@
 #include "main_window.h"
 #include <gtkmm/stacksidebar.h>
 #include <iostream>
+#include "api_client.h"
+#include "channels_store.h"
+#include "rtm_client.h"
+#include "users_store.h"
 
 MainWindow::MainWindow(std::shared_ptr<api_client> api_client,
                        const std::string& emoji_directory,

@@ -1,6 +1,9 @@
 #include "message_text_view.h"
 #include <iostream>
 #include <regex>
+#include "channels_store.h"
+#include "emoji_loader.h"
+#include "users_store.h"
 
 MessageTextView::MessageTextView(team& team) : team_(team) {
   signal_event_after().connect(

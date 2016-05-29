@@ -6,6 +6,7 @@
 #include <gtkmm/box.h>
 #include <gtkmm/listbox.h>
 #include <json/json.h>
+#include <boost/optional.hpp>
 #include "channel.h"
 #include "team.h"
 

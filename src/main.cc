@@ -3,6 +3,7 @@
 #include <libnotify/notify.h>
 #include <fstream>
 #include <iostream>
+#include "api_client.h"
 #include "main_window.h"
 #include "team.h"
 

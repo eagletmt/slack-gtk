@@ -1,4 +1,9 @@
 #include "team.h"
+#include "channels_store.h"
+#include "emoji_loader.h"
+#include "icon_loader.h"
+#include "rtm_client.h"
+#include "users_store.h"
 
 team::team(std::shared_ptr<api_client> api_client,
            const std::string& emoji_directory, const Json::Value& json)
