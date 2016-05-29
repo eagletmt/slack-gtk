@@ -27,7 +27,7 @@ class MessageTextView : public Gtk::TextView {
       Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
       const std::string& text, bool is_message);
 
-  bool on_motion_notify_event(GdkEventMotion* event);
+  virtual bool on_motion_notify_event(GdkEventMotion* event) override;
   void on_event_after(GdkEvent* event);
 
   Glib::RefPtr<Gdk::Cursor> default_cursor_, pointer_cursor_;

@@ -20,8 +20,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
 
       api_client_(api_client),
       icon_loader_(icon_loader),
-      users_store_(users_store),
-      channels_store_(channels_store) {
+      users_store_(users_store) {
   Gtk::Box *hbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
   add(*hbox);
 

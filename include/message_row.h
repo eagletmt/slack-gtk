@@ -40,7 +40,6 @@ class MessageRow : public Gtk::ListBoxRow {
   api_client api_client_;
   icon_loader& icon_loader_;
   const users_store& users_store_;
-  const channels_store& channels_store_;
 };
 
 #endif
