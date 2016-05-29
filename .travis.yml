@@ -1,17 +1,16 @@
 language: cpp
 sudo: required
 dist: trusty
+services:
+  - docker
 compiler:
   - gcc
   - clang
 git:
   submodules: false
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y gtkmm-3.0-dev libsoup2.4-dev libjsoncpp-dev libboost-dev libnotify-dev
+  - docker build -t slack-gtk .
 before_script:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - docker run slack-gtk $CXX --version
 script:
-  - make
+  - docker run -e CXX=$CXX slack-gtk ../ci/build.sh
