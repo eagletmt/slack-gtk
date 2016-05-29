@@ -14,3 +14,6 @@ before_script:
   - docker run slack-gtk $CXX --version
 script:
   - docker run -e CXX=$CXX slack-gtk ../ci/build.sh
+matrix:
+  allow_failures:
+    - compiler: clang
