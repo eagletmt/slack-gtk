@@ -10,7 +10,7 @@
 
 class api_client {
  public:
-  api_client(const std::string endpoint, const std::string token);
+  api_client(const std::string& endpoint, const std::string& token);
   ~api_client();
   api_client(const api_client& other);
 

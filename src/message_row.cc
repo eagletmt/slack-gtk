@@ -6,21 +6,15 @@
 #include <iostream>
 #include "attachments_view.h"
 
-MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
-                       emoji_loader &emoji_loader,
-                       const users_store &users_store,
-                       const channels_store &channels_store,
-                       const Json::Value &payload)
+MessageRow::MessageRow(team &team, const Json::Value &payload)
     : user_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
-      message_text_view_(users_store, channels_store, emoji_loader),
+      message_text_view_(team),
 
       ts_(payload["ts"].asString()),
 
-      api_client_(api_client),
-      icon_loader_(icon_loader),
-      users_store_(users_store) {
+      team_(team) {
   Gtk::Box *hbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
   add(*hbox);
 
@@ -51,7 +45,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
   std::string text = payload["text"].asString();
 
   const std::string user_id = payload["user"].asString();
-  const boost::optional<user> o_user = users_store_.find(user_id);
+  const boost::optional<user> o_user = team_.users_store_->find(user_id);
   if (o_user) {
     const user &user = o_user.get();
     user_label_.set_text(user.name);
@@ -75,7 +69,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       } else if (image48.isString()) {
         load_user_icon(image48.asString());
       } else if (bot_id.isString()) {
-        const boost::optional<user> ou = users_store_.find(bot_id.asString());
+        const boost::optional<user> ou =
+            team_.users_store_->find(bot_id.asString());
         if (ou) {
           const user &u = ou.get();
           load_user_icon(u.icons.image_72);
@@ -97,7 +92,7 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
       const Json::Value inviter_value = payload["inviter"];
       if (inviter_value.isString()) {
         const boost::optional<user> o_inviter =
-            users_store_.find(inviter_value.asString());
+            team_.users_store_->find(inviter_value.asString());
         if (o_inviter) {
           const user &inviter = o_inviter.get();
           text.append(" by invitation from <@")
@@ -125,8 +120,8 @@ MessageRow::MessageRow(const api_client &api_client, icon_loader &icon_loader,
     }
   }
   if (payload["attachments"].isArray()) {
-    auto attachments_view = Gtk::manage(new AttachmentsView(
-        users_store, channels_store, emoji_loader, payload["attachments"]));
+    auto attachments_view =
+        Gtk::manage(new AttachmentsView(team_, payload["attachments"]));
     vbox->pack_end(*attachments_view);
   }
   vbox->pack_end(message_text_view_);
@@ -139,8 +134,8 @@ MessageRow::~MessageRow() {
 }
 
 void MessageRow::load_user_icon(const std::string &icon_url) {
-  icon_loader_.load(icon_url, std::bind(&MessageRow::on_user_icon_loaded, this,
-                                        std::placeholders::_1));
+  team_.icon_loader_->load(icon_url, std::bind(&MessageRow::on_user_icon_loaded,
+                                               this, std::placeholders::_1));
 }
 
 void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {

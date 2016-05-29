@@ -2,17 +2,11 @@
 #include <gtkmm/stacksidebar.h>
 #include <iostream>
 
-MainWindow::MainWindow(const api_client& api_client,
+MainWindow::MainWindow(std::shared_ptr<api_client> api_client,
                        const std::string& emoji_directory,
                        const Json::Value& json)
     : settings_(Gio::Settings::create("cc.wanko.slack-gtk")),
-      api_client_(api_client),
-      rtm_client_(json),
-      users_store_(json),
-      channels_store_(json),
-      // TODO: Use proper directory
-      icon_loader_("icons"),
-      emoji_loader_(emoji_directory) {
+      team_(api_client, emoji_directory, json) {
   Gtk::Box* box = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
   add(*box);
 
@@ -24,37 +18,37 @@ MainWindow::MainWindow(const api_client& api_client,
 
   get_screen()->set_resolution(settings_->get_double("dpi"));
 
-  rtm_client_.hello_signal().connect(
+  team_.rtm_client_->hello_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_hello_signal));
-  rtm_client_.reconnect_url_signal().connect(
+  team_.rtm_client_->reconnect_url_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_reconnect_url_signal));
-  rtm_client_.presence_change_signal().connect(
+  team_.rtm_client_->presence_change_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_presence_change_signal));
-  rtm_client_.pref_change_signal().connect(
+  team_.rtm_client_->pref_change_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_pref_change_signal));
-  rtm_client_.message_signal().connect(
+  team_.rtm_client_->message_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_message_signal));
-  rtm_client_.channel_marked_signal().connect(
+  team_.rtm_client_->channel_marked_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_marked_signal));
-  rtm_client_.channel_joined_signal().connect(
+  team_.rtm_client_->channel_joined_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_joined_signal));
-  rtm_client_.channel_left_signal().connect(
+  team_.rtm_client_->channel_left_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_left_signal));
-  rtm_client_.user_typing_signal().connect(
+  team_.rtm_client_->user_typing_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_user_typing_signal));
 
   channels_stack_.signal_add().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_added));
   channels_stack_.property_visible_child().signal_changed().connect(
       sigc::mem_fun(*this, &MainWindow::on_visible_channel_changed));
-  for (const auto& p : channels_store_.data()) {
+  for (const auto& p : team_.channels_store_->data()) {
     const channel& chan = p.second;
     if (chan.is_member) {
       add_channel_window(chan);
     }
   }
 
-  rtm_client_.start();
+  team_.rtm_client_->start();
   show_all_children();
 }
 
@@ -73,7 +67,7 @@ void MainWindow::on_reconnect_url_signal(const Json::Value& payload) {
 
 void MainWindow::on_presence_change_signal(const Json::Value& payload) {
   std::ostringstream oss;
-  auto ou = users_store_.find(payload["user"].asString());
+  auto ou = team_.users_store_->find(payload["user"].asString());
   if (ou) {
     oss << ou.get().name << " changed presence to " << payload["presence"];
     append_message(oss.str());
@@ -119,13 +113,14 @@ void MainWindow::append_message(const std::string& text) {
 void MainWindow::on_channel_link_clicked(const std::string& channel_id) {
   Widget* widget = channels_stack_.get_child_by_name(channel_id);
   if (widget == nullptr) {
-    const boost::optional<channel> result = channels_store_.find(channel_id);
+    const boost::optional<channel> result =
+        team_.channels_store_->find(channel_id);
     if (result) {
       std::map<std::string, std::string> params;
       const std::string& name = result.get().name;
       params.emplace(std::make_pair("name", name));
       const boost::optional<Json::Value> join_result =
-          api_client_.post("channels.join", params);
+          team_.api_client_->post("channels.join", params);
       if (join_result) {
         const Json::Value& join_response = join_result.get();
         if (!join_response["ok"].asBool()) {
@@ -147,7 +142,8 @@ void MainWindow::on_channel_link_clicked(const std::string& channel_id) {
 
 void MainWindow::on_channel_joined_signal(const Json::Value& payload) {
   const std::string channel_id = payload["channel"]["id"].asString();
-  const boost::optional<channel> result = channels_store_.find(channel_id);
+  const boost::optional<channel> result =
+      team_.channels_store_->find(channel_id);
   if (result) {
     auto w = add_channel_window(result.get());
     channels_stack_.set_visible_child(*w);
@@ -172,8 +168,8 @@ void MainWindow::on_channel_left_signal(const Json::Value& payload) {
 }
 
 void MainWindow::on_user_typing_signal(const Json::Value& payload) {
-  auto oc = channels_store_.find(payload["channel"].asString());
-  auto ou = users_store_.find(payload["user"].asString());
+  auto oc = team_.channels_store_->find(payload["channel"].asString());
+  auto ou = team_.users_store_->find(payload["user"].asString());
   if (oc && ou) {
     const channel& c = oc.get();
     const user& u = ou.get();
@@ -210,9 +206,7 @@ static std::string build_channel_title(const ChannelWindow& window) {
 }
 
 ChannelWindow* MainWindow::add_channel_window(const channel& chan) {
-  auto w = Gtk::manage(new ChannelWindow(api_client_, users_store_,
-                                         channels_store_, icon_loader_,
-                                         emoji_loader_, settings_, chan));
+  auto w = Gtk::manage(new ChannelWindow(team_, settings_, chan));
   w->channel_link_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_link_clicked));
   w->property_unread_count().signal_changed().connect(sigc::bind(

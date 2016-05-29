@@ -3,8 +3,8 @@
 #include <libnotify/notify.h>
 #include <fstream>
 #include <iostream>
-#include "api_client.h"
 #include "main_window.h"
+#include "team.h"
 
 int main(int argc, char* argv[]) {
   const std::string token = Glib::getenv("SLACK_GTK_TOKEN");
@@ -18,9 +18,10 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  api_client api_client("https://slack.com/api", token);
+  std::shared_ptr<api_client> api =
+      std::make_shared<api_client>("https://slack.com/api", token);
   const boost::optional<Json::Value> result =
-      api_client.post("rtm.start", std::map<std::string, std::string>());
+      api->post("rtm.start", std::map<std::string, std::string>());
   if (!result) {
     return 1;
   }
@@ -35,7 +36,7 @@ int main(int argc, char* argv[]) {
   notify_init(app_name);
 
   auto app = Gtk::Application::create(argc, argv, app_name);
-  MainWindow window(api_client, emoji_directory, json);
+  MainWindow window(api, emoji_directory, json);
 
   return app->run(window);
 }

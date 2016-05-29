@@ -2,12 +2,7 @@
 #include <iostream>
 #include <regex>
 
-MessageTextView::MessageTextView(const users_store& users_store,
-                                 const channels_store& channels_store,
-                                 emoji_loader& emoji_loader)
-    : users_store_(users_store),
-      channels_store_(channels_store),
-      emoji_loader_(emoji_loader) {
+MessageTextView::MessageTextView(team& team) : team_(team) {
   signal_event_after().connect(
       sigc::mem_fun(*this, &MessageTextView::on_event_after));
 }
@@ -76,7 +71,7 @@ Gtk::TextBuffer::iterator MessageTextView::insert_hyperlink(
     switch (linker[0]) {
       case '@': {
         const std::string user_id = linker.substr(1, linker.size() - 1);
-        const boost::optional<user> o_user = users_store_.find(user_id);
+        const boost::optional<user> o_user = team_.users_store_->find(user_id);
         if (o_user) {
           iter =
               insert_user_link(buffer, iter, user_id, "@" + o_user.get().name);
@@ -89,7 +84,7 @@ Gtk::TextBuffer::iterator MessageTextView::insert_hyperlink(
       case '#': {
         const std::string channel_id = linker.substr(1, linker.size());
         const boost::optional<channel> o_channel =
-            channels_store_.find(channel_id);
+            team_.channels_store_->find(channel_id);
         if (o_channel) {
           iter = insert_channel_link(buffer, iter, channel_id,
                                      "#" + o_channel.get().name);
@@ -179,7 +174,7 @@ Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
     if (tag.empty()) {
       iter = buffer->insert(iter, text);
     } else if (tag.compare(0, 6, "emoji_") == 0) {
-      Glib::RefPtr<Gdk::Pixbuf> emoji = emoji_loader_.find(text);
+      Glib::RefPtr<Gdk::Pixbuf> emoji = team_.emoji_loader_->find(text);
       if (emoji) {
         iter = buffer->insert_pixbuf(
             iter, emoji->scale_simple(24, 24, Gdk::INTERP_BILINEAR));

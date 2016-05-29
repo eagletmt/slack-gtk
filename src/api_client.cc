@@ -4,7 +4,7 @@
 #include <iostream>
 #include <memory>
 
-api_client::api_client(const std::string endpoint, const std::string token)
+api_client::api_client(const std::string& endpoint, const std::string& token)
     : session_(soup_session_new()), endpoint_(endpoint), token_(token) {
   setup();
 }

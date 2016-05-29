@@ -8,12 +8,7 @@
 #include "message_entry.h"
 #include "message_row.h"
 
-ChannelWindow::ChannelWindow(const api_client& api_client,
-                             const users_store& users_store,
-                             const channels_store& channels_store,
-                             icon_loader& icon_loader,
-                             emoji_loader& emoji_loader,
-                             Glib::RefPtr<Gio::Settings> settings,
+ChannelWindow::ChannelWindow(team& team, Glib::RefPtr<Gio::Settings> settings,
                              const channel& chan)
     : Glib::ObjectBase(typeid(ChannelWindow)),
       Gtk::Box(),
@@ -24,16 +19,12 @@ ChannelWindow::ChannelWindow(const api_client& api_client,
 
       id_(chan.id),
       name_(chan.name),
-      api_client_(api_client),
-      users_store_(users_store),
-      channels_store_(channels_store),
-      icon_loader_(icon_loader),
-      emoji_loader_(emoji_loader) {
+      team_(team) {
   set_orientation(Gtk::ORIENTATION_VERTICAL);
   Gtk::ScrolledWindow* messages_scrolled_window =
       Gtk::manage(new Gtk::ScrolledWindow());
   pack_start(*messages_scrolled_window);
-  pack_end(*Gtk::manage(new MessageEntry(api_client_, chan.id)),
+  pack_end(*Gtk::manage(new MessageEntry(*team_.api_client_, chan.id)),
            Gtk::PACK_SHRINK);
 
   messages_scrolled_window->add(messages_list_box_);
@@ -67,9 +58,9 @@ void ChannelWindow::load_history() {
   if (row != nullptr) {
     params["latest"] = row->ts();
   }
-  api_client_.queue_post("channels.history", params,
-                         std::bind(&ChannelWindow::on_channels_history, this,
-                                   std::placeholders::_1));
+  team_.api_client_->queue_post("channels.history", params,
+                                std::bind(&ChannelWindow::on_channels_history,
+                                          this, std::placeholders::_1));
 }
 
 void ChannelWindow::on_message_signal(const Json::Value& payload) {
@@ -85,9 +76,7 @@ void ChannelWindow::on_channel_marked(const Json::Value& payload) {
 }
 
 MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
-  auto row =
-      Gtk::manage(new MessageRow(api_client_, icon_loader_, emoji_loader_,
-                                 users_store_, channels_store_, payload));
+  auto row = Gtk::manage(new MessageRow(team_, payload));
   messages_list_box_.append(*row);
   row->signal_channel_link_clicked().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
@@ -96,9 +85,7 @@ MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
 }
 
 MessageRow* ChannelWindow::prepend_message(const Json::Value& payload) {
-  auto row =
-      Gtk::manage(new MessageRow(api_client_, icon_loader_, emoji_loader_,
-                                 users_store_, channels_store_, payload));
+  auto row = Gtk::manage(new MessageRow(team_, payload));
   messages_list_box_.prepend(*row);
   row->signal_channel_link_clicked().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
@@ -175,5 +162,6 @@ void ChannelWindow::mark_as_read(const std::string& ts) {
   std::map<std::string, std::string> params;
   params["channel"] = id();
   params["ts"] = ts;
-  api_client_.queue_post("channels.mark", params, channels_mark_finished);
+  team_.api_client_->queue_post("channels.mark", params,
+                                channels_mark_finished);
 }

@@ -4,18 +4,13 @@
 #include <giomm/settings.h>
 #include <gtkmm/applicationwindow.h>
 #include <gtkmm/stack.h>
-#include "api_client.h"
 #include "channel_window.h"
-#include "channels_store.h"
-#include "emoji_loader.h"
-#include "icon_loader.h"
-#include "rtm_client.h"
-#include "users_store.h"
+#include "team.h"
 
 class MainWindow : public Gtk::ApplicationWindow {
  public:
-  MainWindow(const api_client& api_client, const std::string& emoji_directory,
-             const Json::Value& json);
+  MainWindow(std::shared_ptr<api_client> api_client,
+             const std::string& emoji_directory, const Json::Value& json);
   virtual ~MainWindow();
 
  private:
@@ -40,11 +35,6 @@ class MainWindow : public Gtk::ApplicationWindow {
   Gtk::Stack channels_stack_;
   Glib::RefPtr<Gio::Settings> settings_;
 
-  api_client api_client_;
-  rtm_client rtm_client_;
-  users_store users_store_;
-  channels_store channels_store_;
-  icon_loader icon_loader_;
-  emoji_loader emoji_loader_;
+  team team_;
 };
 #endif

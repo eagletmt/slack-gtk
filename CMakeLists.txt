@@ -43,6 +43,7 @@ set(SOURCES
   src/message_row.cc
   src/message_text_view.cc
   src/rtm_client.cc
+  src/team.cc
   src/users_store.cc
   )
 add_executable(slack-gtk ${SOURCES})

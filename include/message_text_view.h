@@ -2,15 +2,11 @@
 #define SLACK_GTK_MESSAGE_TEXT_VIEW_H
 
 #include <gtkmm/textview.h>
-#include "channels_store.h"
-#include "emoji_loader.h"
-#include "users_store.h"
+#include "team.h"
 
 class MessageTextView : public Gtk::TextView {
  public:
-  MessageTextView(const users_store& users_store,
-                  const channels_store& channels_store,
-                  emoji_loader& emoji_loader);
+  MessageTextView(team& team);
   ~MessageTextView() override;
 
   void set_text(const std::string& text, bool is_message);
@@ -32,9 +28,7 @@ class MessageTextView : public Gtk::TextView {
 
   Glib::RefPtr<Gdk::Cursor> default_cursor_, pointer_cursor_;
 
-  const users_store& users_store_;
-  const channels_store& channels_store_;
-  emoji_loader& emoji_loader_;
+  team& team_;
 
   sigc::signal<void, const std::string &> signal_user_link_clicked_,
       signal_channel_link_clicked_;

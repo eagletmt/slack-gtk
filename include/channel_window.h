@@ -6,21 +6,15 @@
 #include <gtkmm/box.h>
 #include <gtkmm/listbox.h>
 #include <json/json.h>
-#include "api_client.h"
 #include "channel.h"
-#include "channels_store.h"
-#include "emoji_loader.h"
-#include "icon_loader.h"
-#include "users_store.h"
+#include "team.h"
 
 class MessageRow;
 
 class ChannelWindow : public Gtk::Box {
  public:
-  ChannelWindow(const api_client& api_client, const users_store& users_store,
-                const channels_store& channels_store, icon_loader& icon_loader,
-                emoji_loader& emoji_loader,
-                Glib::RefPtr<Gio::Settings> settings, const channel& chan);
+  ChannelWindow(team& team, Glib::RefPtr<Gio::Settings> settings,
+                const channel& chan);
 
   const std::string& id() const;
   const std::string& name() const;
@@ -51,11 +45,7 @@ class ChannelWindow : public Gtk::Box {
 
   std::string id_;
   std::string name_;
-  api_client api_client_;
-  const users_store& users_store_;
-  const channels_store& channels_store_;
-  icon_loader& icon_loader_;
-  emoji_loader& emoji_loader_;
+  team& team_;
 
   sigc::signal<void, const std::string&> channel_link_signal_;
 };
