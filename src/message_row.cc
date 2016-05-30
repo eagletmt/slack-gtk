@@ -8,7 +8,8 @@
 #include "icon_loader.h"
 #include "users_store.h"
 
-MessageRow::MessageRow(team &team, const Json::Value &payload)
+MessageRow::MessageRow(team &team, Glib::RefPtr<Gio::Settings> settings,
+                       const Json::Value &payload)
     : user_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
@@ -16,7 +17,8 @@ MessageRow::MessageRow(team &team, const Json::Value &payload)
 
       ts_(payload["ts"].asString()),
 
-      team_(team) {
+      team_(team),
+      settings_(settings) {
   Gtk::Box *hbox = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL));
   add(*hbox);
 
@@ -141,7 +143,8 @@ void MessageRow::load_user_icon(const std::string &icon_url) {
 }
 
 void MessageRow::on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
-  user_image_.set(pixbuf->scale_simple(36, 36, Gdk::INTERP_BILINEAR));
+  const auto size = settings_->get_uint("user-icon-size");
+  user_image_.set(pixbuf->scale_simple(size, size, Gdk::INTERP_BILINEAR));
 }
 
 sigc::signal<void, const std::string &>

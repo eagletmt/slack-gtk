@@ -1,6 +1,7 @@
 #ifndef SLACK_GTK_MESSAGE_ROW_H
 #define SLACK_GTK_MESSAGE_ROW_H
 
+#include <giomm/settings.h>
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/listboxrow.h>
@@ -12,7 +13,8 @@
 
 class MessageRow : public Gtk::ListBoxRow {
  public:
-  MessageRow(team& team, const Json::Value& payload);
+  MessageRow(team& team, Glib::RefPtr<Gio::Settings> settings,
+             const Json::Value& payload);
   virtual ~MessageRow();
 
   std::string summary_for_notification() const;
@@ -32,6 +34,7 @@ class MessageRow : public Gtk::ListBoxRow {
   std::string ts_;
 
   team& team_;
+  Glib::RefPtr<Gio::Settings> settings_;
 };
 
 #endif

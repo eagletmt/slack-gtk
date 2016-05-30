@@ -25,4 +25,5 @@ make
 ```sh
 gsettings set cc.wanko.slack-gtk notification-timeout 10000
 gsettings set cc.wanko.slack-gtk dpi 133
+gsettings set cc.wanko.slack-gtk user-icon-size 48
 ```

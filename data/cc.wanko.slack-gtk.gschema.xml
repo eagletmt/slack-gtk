@@ -8,5 +8,9 @@
       <default>96</default>
       <summary>DPI</summary>
     </key>
+    <key name="user-icon-size" type="u">
+      <default>36</default>
+      <summary>Icon size (in pixel) of users</summary>
+    </key>
   </schema>
 </schemalist>

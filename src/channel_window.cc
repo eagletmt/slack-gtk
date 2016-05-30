@@ -76,7 +76,7 @@ void ChannelWindow::on_channel_marked(const Json::Value& payload) {
 }
 
 MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
-  auto row = Gtk::manage(new MessageRow(team_, payload));
+  auto row = Gtk::manage(new MessageRow(team_, settings_, payload));
   messages_list_box_.append(*row);
   row->signal_channel_link_clicked().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
@@ -85,7 +85,7 @@ MessageRow* ChannelWindow::append_message(const Json::Value& payload) {
 }
 
 MessageRow* ChannelWindow::prepend_message(const Json::Value& payload) {
-  auto row = Gtk::manage(new MessageRow(team_, payload));
+  auto row = Gtk::manage(new MessageRow(team_, settings_, payload));
   messages_list_box_.prepend(*row);
   row->signal_channel_link_clicked().connect(
       sigc::mem_fun(*this, &ChannelWindow::on_channel_link_clicked));
