@@ -32,6 +32,9 @@ class MainWindow : public Gtk::ApplicationWindow {
   void append_message(const std::string& text);
   ChannelWindow* add_channel_window(const channel& chan);
 
+  void request_update_emoji();
+  void emoji_list_finished(const boost::optional<Json::Value>& result);
+
   Gtk::Stack channels_stack_;
   Glib::RefPtr<Gio::Settings> settings_;
 

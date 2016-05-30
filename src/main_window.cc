@@ -3,6 +3,7 @@
 #include <iostream>
 #include "api_client.h"
 #include "channels_store.h"
+#include "emoji_loader.h"
 #include "rtm_client.h"
 #include "users_store.h"
 
@@ -51,6 +52,8 @@ MainWindow::MainWindow(std::shared_ptr<api_client> api_client,
       add_channel_window(chan);
     }
   }
+
+  request_update_emoji();
 
   team_.rtm_client_->start();
   show_all_children();
@@ -240,5 +243,25 @@ void MainWindow::on_visible_channel_changed() {
   Widget* widget = channels_stack_.get_visible_child();
   if (widget != nullptr) {
     static_cast<ChannelWindow*>(widget)->on_channel_visible();
+  }
+}
+
+void MainWindow::request_update_emoji() {
+  team_.api_client_->queue_post(
+      "emoji.list", std::map<std::string, std::string>(),
+      std::bind(&MainWindow::emoji_list_finished, this, std::placeholders::_1));
+}
+
+void MainWindow::emoji_list_finished(
+    const boost::optional<Json::Value>& result) {
+  if (result) {
+    const Json::Value emojis = result.get()["emoji"];
+    for (const std::string key : emojis.getMemberNames()) {
+      const std::string val = emojis[key].asString();
+      team_.emoji_loader_->add_custom_emoji(key, val);
+    }
+    // TODO: Redraw message rows
+  } else {
+    std::cerr << "[MainWindow] failed to get custom emoji list" << std::endl;
   }
 }
