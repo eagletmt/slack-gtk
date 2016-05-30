@@ -12,5 +12,9 @@
       <default>36</default>
       <summary>Icon size (in pixel) of users</summary>
     </key>
+    <key name="emoji-size" type="u">
+      <default>24</default>
+      <summary>Emoji size (in pixel)</summary>
+    </key>
   </schema>
 </schemalist>

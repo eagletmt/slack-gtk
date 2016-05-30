@@ -5,7 +5,9 @@
 #include "emoji_loader.h"
 #include "users_store.h"
 
-MessageTextView::MessageTextView(team& team) : team_(team) {
+MessageTextView::MessageTextView(team& team,
+                                 Glib::RefPtr<Gio::Settings> settings)
+    : team_(team), settings_(settings) {
   signal_event_after().connect(
       sigc::mem_fun(*this, &MessageTextView::on_event_after));
 }
@@ -179,8 +181,9 @@ Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
     } else if (tag.compare(0, 6, "emoji_") == 0) {
       Glib::RefPtr<Gdk::Pixbuf> emoji = team_.emoji_loader_->find(text);
       if (emoji) {
+        const auto size = settings_->get_uint("emoji-size");
         iter = buffer->insert_pixbuf(
-            iter, emoji->scale_simple(24, 24, Gdk::INTERP_BILINEAR));
+            iter, emoji->scale_simple(size, size, Gdk::INTERP_BILINEAR));
       } else {
         std::cerr << "[MessageTextView] cannot find emoji " << text
                   << std::endl;

@@ -13,7 +13,7 @@ MessageRow::MessageRow(team &team, Glib::RefPtr<Gio::Settings> settings,
     : user_image_(Gtk::Stock::MISSING_IMAGE,
                   Gtk::IconSize(Gtk::ICON_SIZE_BUTTON)),
       user_label_("", Gtk::ALIGN_START, Gtk::ALIGN_CENTER),
-      message_text_view_(team),
+      message_text_view_(team, settings),
 
       ts_(payload["ts"].asString()),
 
@@ -124,8 +124,8 @@ MessageRow::MessageRow(team &team, Glib::RefPtr<Gio::Settings> settings,
     }
   }
   if (payload["attachments"].isArray()) {
-    auto attachments_view =
-        Gtk::manage(new AttachmentsView(team_, payload["attachments"]));
+    auto attachments_view = Gtk::manage(
+        new AttachmentsView(team_, settings_, payload["attachments"]));
     vbox->pack_end(*attachments_view);
   }
   vbox->pack_end(message_text_view_);
