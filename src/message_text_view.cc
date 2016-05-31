@@ -7,7 +7,7 @@
 
 MessageTextView::MessageTextView(team& team,
                                  Glib::RefPtr<Gio::Settings> settings)
-    : team_(team), settings_(settings) {
+    : team_(team), settings_(settings), raw_text_(), is_message_(false) {
   signal_event_after().connect(
       sigc::mem_fun(*this, &MessageTextView::on_event_after));
 }
@@ -202,24 +202,9 @@ Gtk::TextBuffer::iterator MessageTextView::insert_markdown_text(
 }
 
 void MessageTextView::set_text(const std::string& text, bool is_message) {
-  Glib::RefPtr<Gtk::TextBuffer> buffer = Gtk::TextBuffer::create();
-  create_tags(buffer);
-  Gtk::TextBuffer::iterator iter = buffer->get_iter_at_offset(0);
-
-  std::regex markup_re("<([^<>]*)>");
-  std::sregex_iterator re_it(text.begin(), text.end(), markup_re), re_end;
-
-  std::size_t pos = 0;
-
-  for (; re_it != re_end; ++re_it) {
-    iter = insert_markdown_text(
-        buffer, iter, text.substr(pos, re_it->position() - pos), is_message);
-    iter = insert_hyperlink(buffer, iter, (*re_it)[1].str());
-    pos = re_it->position() + re_it->length();
-  }
-  iter = insert_markdown_text(buffer, iter, text.substr(pos), is_message);
-
-  set_buffer(buffer);
+  raw_text_ = text;
+  is_message_ = is_message;
+  redraw_message();
 }
 
 std::string MessageTextView::get_text() const {
@@ -311,4 +296,27 @@ MessageTextView::signal_user_link_clicked() {
 sigc::signal<void, const std::string&>
 MessageTextView::signal_channel_link_clicked() {
   return signal_channel_link_clicked_;
+}
+
+void MessageTextView::redraw_message() {
+  Glib::RefPtr<Gtk::TextBuffer> buffer = Gtk::TextBuffer::create();
+  create_tags(buffer);
+  Gtk::TextBuffer::iterator iter = buffer->get_iter_at_offset(0);
+
+  std::regex markup_re("<([^<>]*)>");
+  std::sregex_iterator re_it(raw_text_.begin(), raw_text_.end(), markup_re),
+      re_end;
+
+  std::size_t pos = 0;
+
+  for (; re_it != re_end; ++re_it) {
+    iter = insert_markdown_text(buffer, iter,
+                                raw_text_.substr(pos, re_it->position() - pos),
+                                is_message_);
+    iter = insert_hyperlink(buffer, iter, (*re_it)[1].str());
+    pos = re_it->position() + re_it->length();
+  }
+  iter = insert_markdown_text(buffer, iter, raw_text_.substr(pos), is_message_);
+
+  set_buffer(buffer);
 }

@@ -35,6 +35,8 @@ class ChannelWindow : public Gtk::Box {
   void on_channel_link_clicked(const std::string& channel_id);
   void on_channel_visible();
 
+  void redraw_messages();
+
  private:
   void send_notification(const MessageRow* row) const;
 

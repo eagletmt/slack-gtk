@@ -16,6 +16,8 @@ class MessageTextView : public Gtk::TextView {
   sigc::signal<void, const std::string&> signal_user_link_clicked();
   sigc::signal<void, const std::string&> signal_channel_link_clicked();
 
+  void redraw_message();
+
  private:
   Gtk::TextBuffer::iterator insert_hyperlink(
       Glib::RefPtr<Gtk::TextBuffer> buffer, Gtk::TextBuffer::iterator iter,
@@ -31,6 +33,8 @@ class MessageTextView : public Gtk::TextView {
 
   team& team_;
   Glib::RefPtr<Gio::Settings> settings_;
+  std::string raw_text_;
+  bool is_message_;
 
   sigc::signal<void, const std::string &> signal_user_link_clicked_,
       signal_channel_link_clicked_;

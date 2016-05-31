@@ -165,3 +165,9 @@ void ChannelWindow::mark_as_read(const std::string& ts) {
   team_.api_client_->queue_post("channels.mark", params,
                                 channels_mark_finished);
 }
+
+void ChannelWindow::redraw_messages() {
+  for (Widget* widget : messages_list_box_.get_children()) {
+    static_cast<MessageRow*>(widget)->redraw_message();
+  }
+}

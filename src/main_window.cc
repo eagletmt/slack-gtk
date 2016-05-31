@@ -260,7 +260,9 @@ void MainWindow::emoji_list_finished(
       const std::string val = emojis[key].asString();
       team_.emoji_loader_->add_custom_emoji(key, val);
     }
-    // TODO: Redraw message rows
+    for (Widget* widget : channels_stack_.get_children()) {
+      static_cast<ChannelWindow*>(widget)->redraw_messages();
+    }
   } else {
     std::cerr << "[MainWindow] failed to get custom emoji list" << std::endl;
   }

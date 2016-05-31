@@ -23,6 +23,8 @@ class MessageRow : public Gtk::ListBoxRow {
   sigc::signal<void, const std::string&> signal_user_link_clicked();
   sigc::signal<void, const std::string&> signal_channel_link_clicked();
 
+  void redraw_message();
+
  private:
   void load_user_icon(const std::string& url);
   void on_user_icon_loaded(Glib::RefPtr<Gdk::Pixbuf> pixbuf);

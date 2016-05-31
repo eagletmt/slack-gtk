@@ -163,3 +163,7 @@ std::string MessageRow::summary_for_notification() const {
 const std::string &MessageRow::ts() const {
   return ts_;
 }
+
+void MessageRow::redraw_message() {
+  message_text_view_.redraw_message();
+}
