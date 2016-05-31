@@ -12,6 +12,7 @@ class emoji_loader {
 
   Glib::RefPtr<Gdk::Pixbuf> find(const std::string& name) const;
   void add_custom_emoji(const std::string& name, const std::string& url);
+  void remove_custom_emoji(const std::string& name);
 
  private:
   std::string resolve_alias(const std::string& name) const;

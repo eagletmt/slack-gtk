@@ -41,6 +41,8 @@ MainWindow::MainWindow(std::shared_ptr<api_client> api_client,
       sigc::mem_fun(*this, &MainWindow::on_channel_left_signal));
   team_.rtm_client_->user_typing_signal().connect(
       sigc::mem_fun(*this, &MainWindow::on_user_typing_signal));
+  team_.rtm_client_->emoji_changed_signal().connect(
+      sigc::mem_fun(*this, &MainWindow::on_emoji_changed_signal));
 
   channels_stack_.signal_add().connect(
       sigc::mem_fun(*this, &MainWindow::on_channel_added));
@@ -260,10 +262,32 @@ void MainWindow::emoji_list_finished(
       const std::string val = emojis[key].asString();
       team_.emoji_loader_->add_custom_emoji(key, val);
     }
-    for (Widget* widget : channels_stack_.get_children()) {
-      static_cast<ChannelWindow*>(widget)->redraw_messages();
-    }
+    redraw_messages();
   } else {
     std::cerr << "[MainWindow] failed to get custom emoji list" << std::endl;
+  }
+}
+
+void MainWindow::on_emoji_changed_signal(const Json::Value& payload) {
+  const std::string subtype = payload["subtype"].asString();
+  if (subtype == "add") {
+    const std::string name = payload["name"].asString();
+    const std::string value = payload["value"].asString();
+    team_.emoji_loader_->add_custom_emoji(name, value);
+  } else if (subtype == "remove") {
+    for (const auto& name : payload["names"]) {
+      team_.emoji_loader_->remove_custom_emoji(name.asString());
+    }
+  } else {
+    std::cerr << "[MainWindow] on_emoji_changed_signal: Unknown subtype: "
+              << subtype << std::endl;
+    return;
+  }
+  redraw_messages();
+}
+
+void MainWindow::redraw_messages() {
+  for (Widget* widget : channels_stack_.get_children()) {
+    static_cast<ChannelWindow*>(widget)->redraw_messages();
   }
 }

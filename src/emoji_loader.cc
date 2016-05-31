@@ -96,6 +96,22 @@ void emoji_loader::add_custom_emoji(const std::string& name,
   }
 }
 
+void emoji_loader::remove_custom_emoji(const std::string& name) {
+  auto it = aliases_.find(name);
+  if (it == aliases_.end()) {
+    auto jt = custom_emojis_.find(name);
+    if (jt == custom_emojis_.end()) {
+      std::cerr
+          << "[emoji_loader] Unknown custom emoji is requested to remove: "
+          << name << std::endl;
+    } else {
+      custom_emojis_.erase(jt);
+    }
+  } else {
+    aliases_.erase(it);
+  }
+}
+
 static void ensure_directory(const std::string& path) try {
   Gio::File::create_for_path(path)->make_directory_with_parents();
 } catch (Gio::Error& e) {

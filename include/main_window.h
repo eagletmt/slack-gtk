@@ -23,6 +23,7 @@ class MainWindow : public Gtk::ApplicationWindow {
   void on_channel_joined_signal(const Json::Value& payload);
   void on_channel_left_signal(const Json::Value& payload);
   void on_user_typing_signal(const Json::Value& payload);
+  void on_emoji_changed_signal(const Json::Value& payload);
 
   void on_channel_link_clicked(const std::string& channel_id);
   void on_channel_added(Widget* widget);
@@ -34,6 +35,7 @@ class MainWindow : public Gtk::ApplicationWindow {
 
   void request_update_emoji();
   void emoji_list_finished(const boost::optional<Json::Value>& result);
+  void redraw_messages();
 
   Gtk::Stack channels_stack_;
   Glib::RefPtr<Gio::Settings> settings_;

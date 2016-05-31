@@ -114,6 +114,8 @@ void rtm_client::handle_payload(const char *payload, size_t size) {
         channel_left_signal_.emit(root);
       } else if (type == "user_typing") {
         user_typing_signal_.emit(root);
+      } else if (type == "emoji_changed") {
+        emoji_changed_signal_.emit(root);
       } else {
         std::cerr << "rtm_client: unknown message type=" << type << std::endl;
         std::cerr << root << std::endl;
@@ -153,4 +155,7 @@ rtm_client::message_signal_type rtm_client::channel_left_signal() {
 }
 rtm_client::message_signal_type rtm_client::user_typing_signal() {
   return user_typing_signal_;
+}
+rtm_client::message_signal_type rtm_client::emoji_changed_signal() {
+  return emoji_changed_signal_;
 }
