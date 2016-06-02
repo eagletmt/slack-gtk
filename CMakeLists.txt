@@ -29,6 +29,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
+
 set(SOURCES
   src/api_client.cc
   src/attachments_view.cc
@@ -46,7 +47,22 @@ set(SOURCES
   src/team.cc
   src/users_store.cc
   )
-add_executable(slack-gtk ${SOURCES})
+
+# gresource
+pkg_get_variable(glib_compile_resources gio-2.0 glib_compile_resources)
+execute_process(
+  COMMAND ${glib_compile_resources} --sourcedir ${CMAKE_SOURCE_DIR}/data --generate-dependencies "${CMAKE_SOURCE_DIR}/data/resources.gresource.xml"
+  OUTPUT_VARIABLE resource_files
+)
+# FIXME: resource_files should be re-configured if resources.gresource.xml is modified.
+add_custom_command(
+  OUTPUT resources.cc
+  COMMAND ${glib_compile_resources} --sourcedir ${CMAKE_SOURCE_DIR}/data --target resources.cc --generate-source "${CMAKE_SOURCE_DIR}/data/resources.gresource.xml"
+  COMMENT "Compiling resources"
+  DEPENDS "${CMAKE_SOURCE_DIR}/data/resources.gresource.xml" ${resource_files}
+)
+
+add_executable(slack-gtk ${SOURCES} resources.cc)
 
 install(PROGRAMS slack-gtk DESTINATION bin)
 
