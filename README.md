@@ -4,6 +4,7 @@
 Native desktop client for slack.com
 
 ## Dependencies
+- boost
 - jsoncpp
 - gtkmm 3
 - libsoup
